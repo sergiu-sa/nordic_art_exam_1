@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Editor / OS
+.DS_Store
+*.log
+.env
+.vscode/
+.idea/
+
+# Personal notes and file
+
+docs/
+prototype/
