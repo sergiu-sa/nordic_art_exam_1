@@ -1,0 +1,65 @@
+/* Reset, element defaults, and the global utilities every page shares.
+   Loaded on every page, after tokens.css. */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* White is the ground of every page; dark zones flip the body. */
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  transition: background-color 1s ease;
+}
+
+body.dark {
+  background: var(--ink);
+}
+
+img {
+  display: block;
+}
+
+/* Inline icons — Heroicons outline 24px via <symbol>/<use>. */
+.i {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.18em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Reveal on scroll — toggled to .in by an IntersectionObserver. */
+.r {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+}
+
+.r.in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+
+  .r {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
