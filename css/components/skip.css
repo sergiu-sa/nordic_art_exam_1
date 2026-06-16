@@ -1,0 +1,21 @@
+/* Skip link - the first tab stop on every page. */
+
+.skip {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 18px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transform: translateY(-300%);
+}
+
+.skip:focus-visible {
+  transform: none;
+  outline: 2px solid var(--sun);
+  outline-offset: 3px;
+}

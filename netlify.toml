@@ -1,0 +1,11 @@
+# Static site, no build step — Netlify serves the repo root as-is.
+
+[build]
+  publish = "."
+
+# Pretty URLs: /artwork/ resolves to /artwork/index.html automatically.
+# Custom 404 fallback for unknown paths.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404

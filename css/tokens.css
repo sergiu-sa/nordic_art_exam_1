@@ -1,0 +1,29 @@
+/* Design tokens */
+
+:root {
+  --ink: #0e0e0e;
+  --paper: #ffffff;
+  --night: #0a0a0a;
+  --signal: #e63312;
+  --signal-deep: #c0260b;
+  --sun: #ffd43a;
+  --grey-700: #333333;
+  --grey-500: #777777;
+  --grey-400: #999999;
+  --grey-300: #dddddd;
+  --serif: "Newsreader", serif;
+  --sans: "Archivo", sans-serif;
+  --gutter: 38px;
+}
+
+@media (max-width: 1000px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 18px;
+  }
+}

@@ -1,0 +1,47 @@
+/* Breadcrumbs  */
+
+.crumbs {
+  padding: 22px var(--gutter) 0;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.crumbs ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.crumbs li {
+  display: flex;
+  align-items: center;
+}
+
+.crumbs li + li::before {
+  content: "/";
+  margin: 0 10px;
+  color: var(--grey-400);
+}
+
+/* --grey-700 (not --grey-500) so the 10.5px link clears WCAG AA on white. */
+.crumbs a {
+  color: var(--grey-700);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.crumbs a:hover {
+  color: var(--signal);
+}
+
+.crumbs a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.crumbs [aria-current="page"] {
+  color: var(--ink);
+}
