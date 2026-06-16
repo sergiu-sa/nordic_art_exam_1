@@ -8,7 +8,7 @@ edit, and delete their own works.
 
 ## Tech stack
 
-- **HTML, CSS, and vanilla JavaScript**  no framework or runtime library, and no build
+- **HTML, CSS, and vanilla JavaScript**: no framework or runtime library, and no build
   step. The deployed site is the static files in this repo, served as-is.
 - Native ES modules with relative imports; modular CSS split by tokens, base, layout,
   components, and pages.
