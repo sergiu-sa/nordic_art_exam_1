@@ -49,6 +49,14 @@ export default [
     },
   },
 
+  // jsdom-backed unit tests use browser globals in addition to node.
+  {
+    files: ["tests/unit/**/*.js"],
+    languageOptions: {
+      globals: { ...globals.browser },
+    },
+  },
+
   // Disable formatting rules that would fight Prettier — must come last.
   prettier,
 ];
