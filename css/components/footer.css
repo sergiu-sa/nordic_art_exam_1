@@ -1,0 +1,153 @@
+/* Footer
+The middle band sets the numbered link columns against the «naa» stamp as the counterweight.
+Composes .tag (tag.css) for any owner-marked column link. */
+
+.fC {
+  background: var(--ink);
+  color: var(--paper);
+  /* height comes from the content; the bottom padding clears the legal line */
+  padding: 80px var(--gutter) 64px;
+  position: relative;
+}
+
+.fC .fhead {
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding-top: 28px;
+}
+
+.fC .fin {
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--sun);
+  margin-bottom: 14px;
+}
+
+/* the middle band — link columns left, the stamp as the right counterweight */
+.fC .fmid {
+  margin: 54px 0 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px clamp(44px, 7vw, 110px);
+}
+
+.fC .fcols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px clamp(44px, 7vw, 110px);
+}
+
+.fC .fkick {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  border-left: 2px solid var(--sun);
+  padding-left: 10px;
+  margin-bottom: 14px;
+}
+
+.fC .fcol a {
+  display: block;
+  width: fit-content;
+  color: var(--grey-300);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 5px 0;
+  transition:
+    color 0.3s,
+    letter-spacing 0.3s;
+}
+
+.fC .fcol a:hover {
+  color: var(--sun);
+  letter-spacing: 0.06em;
+}
+
+.fC .fcol a:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+/* an owner-marked column link composes .tag; the footer re-tunes its size + tick */
+.fC .fcol .tag {
+  border-left: 2px solid rgba(255, 255, 255, 0.5);
+  padding: 2px 0 2px 8px;
+  margin-left: 10px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+}
+
+/* log out is an action → a button; matched to the column link look so the account column reads as one set */
+.fC .fcol .logout {
+  display: block;
+  width: fit-content;
+  color: var(--grey-300);
+  background: none;
+  border: 0;
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 5px 0;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    color 0.3s,
+    letter-spacing 0.3s;
+}
+
+.fC .fcol .logout:hover {
+  color: var(--sun);
+  letter-spacing: 0.06em;
+}
+
+.fC .fcol .logout:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+.fC .legal {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 26px;
+  font-size: 10px;
+  color: var(--grey-400);
+}
+
+/* the exit signature — the stamp pressed on the ink, the right counterweight of the middle band */
+.fC .stamp {
+  flex: none;
+  width: 124px;
+  height: 124px;
+}
+
+/* mobile — the band stacks: columns, then the stamp, then the legal line */
+@media (max-width: 720px) {
+  .fC {
+    padding: 56px var(--gutter) 30px;
+  }
+
+  .fC .fmid {
+    margin: 36px 0 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 38px;
+  }
+
+  .fC .fcols {
+    gap: 28px 40px;
+  }
+
+  .fC .stamp {
+    width: 104px;
+    height: 104px;
+  }
+
+  .fC .legal {
+    position: static;
+    margin-top: 30px;
+  }
+}

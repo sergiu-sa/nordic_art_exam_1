@@ -53,6 +53,10 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   body {
     transition: none;
   }
@@ -62,4 +66,15 @@ img {
     transform: none;
     transition: none;
   }
+}
+
+/* Auth-visibility primitive.
+Pages default to the logged-out nav; body.authed swaps the owner UI in across the masthead, curtain, and footer.
+The live toggle is student-written in the build; these rules make it inert-safe. */
+body:not(.authed) .auth-in {
+  display: none;
+}
+
+body.authed .auth-out {
+  display: none;
 }

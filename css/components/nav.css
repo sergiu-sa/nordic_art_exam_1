@@ -1,0 +1,486 @@
+/* Masthead + curtain menu
+The sticky site header and the full-screen curtain.
+Composes .tickbtn (button.css) and .tag (tag.css).
+The behavioural JS— the sun-seam scrub, the curtain preview swap, the body.authed toggle — is written later; the CSS here renders inert-safe without it. */
+
+/* masthead */
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  /* --signal-deep, not --signal: white  */
+  background: var(--signal-deep);
+  color: var(--paper);
+}
+
+/* the sun-seam
+Over a sun ground the bar takes ink exactly where the ground overlaps it; positioned by the page's scroll handler in px from the bar's top.
+Defaults to 0 — invisible until a page drives it. */
+.site-head::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* clamped to the bar so a px written mid-condense can't paint past its edges */
+  top: min(var(--sun-a, 0px), 100%);
+  bottom: max(0px, calc(100% - var(--sun-b, 0px)));
+  background: var(--ink);
+  z-index: -1;
+}
+
+.utility {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 28px;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  max-height: 40px;
+  opacity: 1;
+  overflow: hidden;
+  transition:
+    max-height 0.45s ease,
+    opacity 0.35s ease,
+    padding 0.45s ease;
+}
+
+.utility .auth a {
+  color: var(--paper);
+  text-decoration: none;
+  margin-left: 18px;
+}
+
+.utility .auth a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.utility .auth a:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 3px;
+}
+
+body.scrolled .utility {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom-color: transparent;
+}
+
+.mainrow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 20px 28px;
+  transition: padding 0.45s ease;
+}
+
+body.scrolled .mainrow {
+  padding: 9px 28px;
+}
+
+.mainrow .lead {
+  justify-self: start;
+  font-size: 12px;
+}
+
+.mainrow .lead a {
+  color: var(--paper);
+  text-decoration: none;
+  transition: letter-spacing 0.3s;
+}
+
+.mainrow .lead a:hover {
+  letter-spacing: 0.05em;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--paper);
+  text-decoration: none;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  transition: font-size 0.45s ease;
+}
+
+.wordmark em {
+  font-style: italic;
+}
+
+body.scrolled .wordmark {
+  font-size: 18px;
+}
+
+/* the lockup
+The «naa» chip tile beside the live wordmark; the chip condenses in step with the wordmark, the text stays the accessible name */
+.mainrow .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.wordmark .naa {
+  display: block;
+  width: 30px;
+  height: 30px;
+  transition:
+    width 0.45s ease,
+    height 0.45s ease;
+}
+
+body.scrolled .wordmark .naa {
+  width: 20px;
+  height: 20px;
+}
+
+.headtools {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* the menu/icon/add controls are .tickbtn compositions; these add only their masthead layout + colour */
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 22px;
+}
+
+/* icon-only control: square tick-button, accessible name via aria-label */
+.icon-btn {
+  padding: 8px 10px;
+  text-decoration: none;
+}
+
+.icon-btn .i {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+/* the owner's primary action — "+ add artwork", shown only when authed */
+.add-btn {
+  text-decoration: none;
+}
+
+/* logged-in utility strip: "log out" is an action, so a button */
+.utility .auth .logout {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--paper);
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: 18px;
+  cursor: pointer;
+}
+
+.utility .auth .logout:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.utility .auth .logout:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 3px;
+}
+
+/* curtain menu */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  /* --signal-deep, not --signal: white micro-text (link nums, the owners tag)  clears AA on the deeper red (~6:1 vs ~4.3:1) */
+  background: var(--signal-deep);
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.65s cubic-bezier(0.75, 0, 0.25, 1);
+  visibility: hidden;
+}
+
+.curtain.open {
+  clip-path: inset(0);
+  visibility: visible;
+}
+
+.curtain-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+}
+
+.curtain-top .wordmark {
+  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* the curtain keeps the masthead lockup so the mark holds through the wipe;
+   fixed size — the bar's condense state must not shrink it here */
+.curtain-top .wordmark .naa,
+body.scrolled .curtain-top .wordmark .naa {
+  width: 24px;
+  height: 24px;
+}
+
+.curtain nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* links shrink to content so the white-field hover hugs the text */
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+  padding: 0 8vw;
+}
+
+.curtain nav a {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: baseline;
+  gap: 26px;
+  color: var(--paper);
+  text-decoration: none;
+  font-family: var(--serif);
+  font-weight: 300;
+  /* eased growth so the longest link clears the hover preview down to ~1024px */
+  font-size: clamp(34px, 4.5vw, 58px);
+  line-height: 1.28;
+  padding: 4px 26px 10px 16px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    padding-left 0.35s ease;
+}
+
+.curtain.open nav a {
+  opacity: 1;
+  transform: none;
+}
+
+/* the hover/focus white-field wipes in from the left while the text flips to  red + italic (a clean print "selected" highlight) */
+.curtain nav a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.75, 0, 0.25, 1);
+  z-index: -1;
+}
+
+.curtain nav a .num {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--paper);
+}
+
+.curtain nav a .word-arrow {
+  width: 0.72em;
+  height: 0.72em;
+  align-self: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.curtain nav a:hover,
+.curtain nav a:focus-visible {
+  padding-left: 16px; /* cancel the base indent — the wipe is the motion */
+  outline: none;
+}
+
+/* the white-field wipe is the focus indicator; forced-colors mode overrides the field, so restore an explicit outline there */
+@media (forced-colors: active) {
+  .curtain nav a:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
+.curtain nav a:hover::before,
+.curtain nav a:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.curtain nav a:hover .word,
+.curtain nav a:focus-visible .word {
+  color: var(--signal);
+  font-style: italic;
+}
+
+.curtain nav a:hover .num,
+.curtain nav a:focus-visible .num {
+  color: var(--signal-deep);
+}
+
+.curtain nav a:hover .word-arrow,
+.curtain nav a:focus-visible .word-arrow {
+  opacity: 1;
+  color: var(--signal);
+}
+
+/* the owner-only entry's tag composes .tag.tag--dark; the curtain centres it and inverts it under the white-field hover */
+.curtain nav a .tag {
+  align-self: center;
+}
+
+.curtain nav a:hover .tag,
+.curtain nav a:focus-visible .tag {
+  color: var(--signal-deep);
+  border-left-color: var(--signal-deep);
+}
+
+.curtain-mark {
+  overflow: hidden;
+  /* the whole "nordic art archive" shows, cropped to its top ~2/3 */
+  height: 0.46em;
+  line-height: 0.76;
+  white-space: nowrap;
+  font-family: var(--serif);
+  font-weight: 300;
+  /* a soft dark ghost — --signal-deep would vanish on the deep ground */
+  color: rgba(14, 14, 14, 0.16);
+  font-size: 12.6vw;
+  letter-spacing: -0.01em;
+  user-select: none;
+  pointer-events: none;
+}
+
+.curtain-mark em {
+  font-style: italic;
+}
+
+/* the curtain hover preview
+A browse link reveals one big work in the right void; wide-desktop + hover only.
+Inert until its swap script runs; each page carries its own .menu-preview markup + data-prev links. */
+.menu-preview {
+  position: absolute;
+  top: 14vh;
+  bottom: 16vh;
+  right: 4vw;
+  width: 28vw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.menu-preview .mp {
+  position: absolute;
+  right: 0;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  opacity: 0;
+  transform: scale(1.03) translateY(10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5);
+}
+
+.menu-preview .mp.show {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 1023px) {
+  .menu-preview {
+    display: none;
+  }
+}
+
+@media (hover: none) {
+  .menu-preview {
+    display: none;
+  }
+}
+
+/* mobile */
+@media (max-width: 720px) {
+  .utility {
+    padding: 8px 16px;
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+  }
+
+  .mainrow,
+  body.scrolled .mainrow {
+    padding: 14px 16px;
+  }
+
+  .mainrow .lead {
+    display: none;
+  }
+
+  .wordmark {
+    font-size: 20px;
+  }
+
+  body.scrolled .wordmark {
+    font-size: 16px;
+  }
+
+  .wordmark .naa {
+    width: 22px;
+    height: 22px;
+  }
+
+  body.scrolled .wordmark .naa {
+    width: 18px;
+    height: 18px;
+  }
+
+  .curtain nav {
+    padding: 0 24px;
+  }
+
+  /* the +add button collapses to its plus icon (name kept via aria-label) */
+  .add-btn .lbl {
+    display: none;
+  }
+
+  .add-btn {
+    padding: 8px 10px;
+  }
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .curtain {
+    transition: none;
+  }
+
+  .curtain nav a::before {
+    transition: none;
+  }
+
+  .menu-preview .mp {
+    transition: opacity 0.3s ease;
+    transform: none;
+  }
+}
