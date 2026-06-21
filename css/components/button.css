@@ -1,0 +1,75 @@
+/* Tick button
+The corner-tick interactive system. Anything clickable that acts is a .tickbtn. Pair with a context class (.menu-btn, .icon-btn, .ebtn) for padding/colour. */
+
+.tickbtn {
+  position: relative;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+
+.tickbtn::before,
+.tickbtn::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  transition:
+    width 0.35s ease,
+    height 0.35s ease;
+}
+
+.tickbtn::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid currentColor;
+  border-left: 1px solid currentColor;
+}
+
+.tickbtn::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+}
+
+.tickbtn:hover {
+  border-color: currentColor;
+}
+
+.tickbtn:hover::before,
+.tickbtn:hover::after {
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+}
+
+.tickbtn:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+/* on the ink/sun rooms and the masthead, the focus ring goes sun for contrast */
+.site-head .tickbtn:focus-visible,
+.darkzone .tickbtn:focus-visible,
+.fC .tickbtn:focus-visible {
+  outline-color: var(--sun);
+}
+
+/* disabled — no affordance, not operable */
+.tickbtn:disabled,
+.tickbtn[aria-disabled="true"] {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* the bracket trace is motion: hold the frame static when motion is reduced */
+@media (prefers-reduced-motion: reduce) {
+  .tickbtn,
+  .tickbtn::before,
+  .tickbtn::after {
+    transition: none;
+  }
+}
