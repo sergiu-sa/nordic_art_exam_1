@@ -1,0 +1,87 @@
+/* Form-kit feedback — field focus corners, inline errors, and the success swap; the shared feedback bits js/ui.js drives. */
+
+.fbox {
+  position: relative;
+  display: block;
+}
+
+.fbox::before,
+.fbox::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.fbox::before {
+  top: -6px;
+  left: -6px;
+  border-top: 1px solid var(--signal);
+  border-left: 1px solid var(--signal);
+}
+
+.fbox::after {
+  bottom: -6px;
+  right: -6px;
+  border-bottom: 1px solid var(--signal);
+  border-right: 1px solid var(--signal);
+}
+
+.fbox:focus-within::before,
+.fbox:focus-within::after {
+  opacity: 1;
+}
+
+/* inline field error- tick-marked, under the field */
+.ferr {
+  display: none;
+  margin-top: 8px;
+  border-left: 2px solid var(--signal-deep);
+  padding-left: 9px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--signal-deep);
+}
+
+.ferr.on {
+  display: block;
+}
+
+/* the success swap  */
+.formdone {
+  margin-top: 24px;
+}
+
+.formdone__msg {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.formdone__msg:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.formdone__link {
+  display: inline-block;
+  margin-top: 16px;
+  margin-right: 18px;
+  font-size: 12px;
+  color: var(--signal-deep);
+  text-decoration: none;
+  transition: letter-spacing 0.3s;
+}
+
+.formdone__link:hover {
+  letter-spacing: 0.06em;
+}
+
+.formdone__link:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
