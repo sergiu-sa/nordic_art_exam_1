@@ -1,0 +1,21 @@
+/* Tick-tag
+Satic metadata (medium, year, location, "owners").
+A 2px left tick, uppercase, letter-spaced, no box.
+The canonical mark; the curtain and footer compose it and add only their context deltas. */
+
+.tag {
+  display: inline-block;
+  border-left: 2px solid var(--signal);
+  padding: 2px 0 2px 10px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-700);
+}
+
+/* white on ink/red grounds. Full-white text so ~10px tags clear AA on --signal-deep; the tick is a UI border (3:1), so it stays 80%. */
+.tag--dark {
+  border-left-color: rgba(255, 255, 255, 0.8);
+  color: var(--paper);
+}

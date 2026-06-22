@@ -63,6 +63,7 @@
   color: var(--grey-700);
 }
 
+/* the retry/empty action composes .tickbtn for the corner-tick frame + focus ring; this rule keeps only its feedback-block padding + type */
 .ebtn {
   display: inline-flex;
   align-items: center;
@@ -74,15 +75,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
   text-decoration: none;
-}
-
-.ebtn:focus-visible {
-  outline: 2px solid var(--signal);
-  outline-offset: 3px;
 }
 
 .ebtn .i {

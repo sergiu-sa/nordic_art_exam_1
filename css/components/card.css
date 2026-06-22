@@ -1,0 +1,104 @@
+/* Artwork card
+The chaos-grid card's own visuals, grid-agnostic.
+The grid positions .card; placement/masonry never lives here.
+Image scales inside the crop on hover/focus; the whole card is one link. */
+
+.card {
+  position: relative;
+  margin: 0 0 56px;
+}
+
+.cardlink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cardlink:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 5px;
+}
+
+.imgwrap {
+  /* block so the wrapper honours width + aspect-ratio independent of the grid; the card is grid-agnostic, so it can't lean on the figure's block context */
+  display: block;
+  overflow: hidden;
+  /* reserve the box so the card doesn't shift before the data-driven ratio (set per work at the feed phase via an inline custom property) replaces this */
+  aspect-ratio: var(--card-ratio, 4 / 5);
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.card:hover img,
+.card:focus-within img {
+  transform: scale(1.04);
+}
+
+.card figcaption {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 9px;
+  color: var(--grey-700);
+}
+
+.card figcaption .a {
+  font-style: normal;
+  font-family: var(--sans);
+  font-size: 10px;
+  /* --grey-700 (not --grey-500): 10px meta on white must clear AA */
+  color: var(--grey-700);
+}
+
+.card figcaption .view {
+  display: inline-block;
+  margin-top: 4px;
+  font-style: normal;
+  font-family: var(--sans);
+  font-size: 10px;
+  /* --signal-deep (not --signal): 10px text on white needs AA  */
+  color: var(--signal-deep);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.4s,
+    transform 0.4s;
+}
+
+.card:hover .view,
+.card:focus-within .view {
+  opacity: 1;
+  transform: none;
+}
+
+/* on the ink ground (the dark room) the captions lighten */
+.darkzone .card figcaption {
+  color: var(--grey-300);
+}
+
+.darkzone .card figcaption .a {
+  color: var(--grey-400);
+}
+
+@media (max-width: 720px) {
+  .card {
+    margin: 0 0 28px;
+  }
+
+  .card img {
+    max-height: 72vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card img,
+  .card figcaption .view {
+    transition: none;
+  }
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="NAA">
+<!-- paper-tile variant of naa-favicon-signal (derived 2026-06-12 for the
+     deep-vermilion masthead): white tile, signal monogram + ticks -->
+<rect width="512" height="512" fill="#ffffff"></rect>
+<g stroke="#e63312" stroke-width="16.00" fill="none" stroke-linecap="square"><path d="M40.0 120.0 V40.0 H120.0"></path><path d="M472.0 392.0 V472.0 H392.0"></path></g>
+<text x="256.0" y="256.0" text-anchor="middle" dominant-baseline="central" font-family="Archivo, sans-serif" font-weight="800" font-size="216.0" letter-spacing="-8.64" fill="#e63312"><tspan>n</tspan><tspan font-style="italic">aa</tspan></text>
+</svg>

@@ -177,7 +177,7 @@ export function renderError(
   if (typeof onRetry === "function") {
     const btn = doc.createElement("button");
     btn.type = "button";
-    btn.className = "ebtn";
+    btn.className = "ebtn tickbtn";
     btn.textContent = retryLabel;
     btn.addEventListener("click", onRetry);
     block.appendChild(btn);
@@ -201,7 +201,7 @@ export function renderEmpty(container, { message, sub = "", action } = {}) {
         node.addEventListener("click", action.onClick);
       }
     }
-    node.className = "ebtn";
+    node.className = "ebtn tickbtn";
     node.textContent = action.label;
     block.appendChild(node);
   }

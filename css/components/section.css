@@ -1,0 +1,77 @@
+/* Section head
+Vvery chapter opens with a hairline + numbered kicker + serif title; an arrow link sits at the right.
+The .arrow is the shared text link. */
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 110px var(--gutter) 48px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(14, 14, 14, 0.25);
+}
+
+.darkzone .section-head {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+.section-head .kicker {
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--signal-deep);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.darkzone .section-head .kicker {
+  color: var(--sun);
+}
+
+.section-head .title {
+  font-family: var(--serif);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.arrow {
+  font-size: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: letter-spacing 0.3s;
+  padding-bottom: 6px;
+}
+
+.arrow:hover {
+  letter-spacing: 0.06em;
+  color: var(--signal);
+}
+
+.darkzone .arrow:hover {
+  color: var(--sun);
+}
+
+.arrow:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.darkzone .arrow:focus-visible {
+  outline-color: var(--sun);
+}
+
+@media (max-width: 720px) {
+  .section-head {
+    margin: 60px var(--gutter) 30px;
+    padding-top: 22px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+}

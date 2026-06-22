@@ -235,6 +235,7 @@ describe("renderError", () => {
     renderError(region, { message: "x", onRetry, retryLabel: "reload" });
     const btn = region.querySelector(".ebtn");
     expect(btn.tagName).toBe("BUTTON");
+    expect(btn.classList.contains("tickbtn")).toBe(true);
     expect(btn.textContent).toMatch(/reload/);
     btn.click();
     expect(onRetry).toHaveBeenCalledOnce();
@@ -260,6 +261,7 @@ describe("renderEmpty", () => {
     expect(block.querySelector(".emsg").textContent).toMatch(/Nothing hangs/);
     const link = block.querySelector(".ebtn");
     expect(link.tagName).toBe("A");
+    expect(link.classList.contains("tickbtn")).toBe(true);
     expect(link.getAttribute("href")).toBe("/index.html");
   });
 
@@ -272,6 +274,7 @@ describe("renderEmpty", () => {
     });
     const btn = document.querySelector(".stateempty .ebtn");
     expect(btn.tagName).toBe("BUTTON");
+    expect(btn.classList.contains("tickbtn")).toBe(true);
     btn.click();
     expect(onClick).toHaveBeenCalledOnce();
   });
