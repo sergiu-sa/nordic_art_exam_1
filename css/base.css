@@ -26,6 +26,20 @@ img {
   display: block;
 }
 
+/* Visually hidden — kept for assistive tech + SEO, removed from sight. */
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Inline icons — Heroicons outline 24px via <symbol>/<use>. */
 .i {
   width: 1.1em;
