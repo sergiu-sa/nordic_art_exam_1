@@ -1,0 +1,575 @@
+/* Home / artworks feed — page-specific styles.
+   Tokens, chrome and the stain kit live elsewhere.
+   This file owns only the home's own moments: the hero, the "by medium" list, the yellow exit, the drift wall, and the four-state visibility layer feed.js drives. */
+
+/* ============ state layer ============
+   body is.loading (default) → is-ready | is-empty | is-error, set by feed.js.
+   The editorial walk past the feed only exists once real works render; in every other state the feed region alone holds the skeleton / empty / error block, so the page never shows an empty dark room or a stray yellow exit. */
+body:not(.is-ready) .threshold,
+body:not(.is-ready) #dark-start,
+body:not(.is-ready) .darkzone,
+body:not(.is-ready) #dark-end,
+body:not(.is-ready) .yellow {
+  display: none;
+}
+
+/* the loading status line is only meaningful while fetching */
+body:not(.is-loading) #feed-status {
+  display: none;
+}
+
+/* the feed view (hero + grid) swaps out for the empty / error block, which feed.js renders into #feed-state — the view is hidden, never destroyed */
+#feed-state {
+  display: none;
+}
+
+body.is-empty #feed-state,
+body.is-error #feed-state {
+  display: block;
+}
+
+body.is-empty #feed-view,
+body.is-error #feed-view {
+  display: none;
+}
+
+/* the hero stands in at its own height while the feed loads */
+.skhero {
+  height: 78vh;
+  min-height: 420px;
+}
+
+.noscript-note {
+  margin: 80px var(--gutter);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  text-align: center;
+  color: var(--grey-700);
+}
+
+/* ============ hero ============ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  height: 78vh;
+  min-height: 420px;
+}
+
+/* the bundled cover hero (shown when the pool can't supply a usable featured work) sits on an ink ground — a safety net in case its image is slow */
+.hero--cover {
+  background: var(--ink);
+}
+
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: kenburns 16s ease-in-out infinite alternate;
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
+}
+
+/* the wrapper hugs the title so empty space doesn't trigger the hover twin; the row carries the rise so both impressions arrive together */
+.herorow {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 34px;
+  animation: riseup 1.2s ease both 0.2s;
+}
+
+/* the title prints wet and dries as the hero settles (opacity cross-fades only; the filter never animates); fill: backwards hands control back to the hover transitions when the dry-in finishes */
+.hero-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(44px, 8vw, 92px);
+  line-height: 0.95;
+  color: var(--paper);
+  text-shadow: 0 2px 26px rgba(0, 0, 0, 0.55);
+  transition: opacity 0.5s ease;
+  animation: dryin 1.8s ease 1.3s backwards;
+}
+
+/* the title's stain twin — white ink soaking into the night  */
+.heroink {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  filter: url(#a3);
+  text-shadow: none;
+  animation: dryout 1.8s ease 1.3s backwards;
+}
+
+@keyframes dryin {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dryout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* attention re-wets it */
+.herorow:hover .heroink {
+  opacity: 1;
+}
+
+.herorow:hover .hero-title:not(.heroink) {
+  opacity: 0.2;
+}
+
+.hero-card {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 38px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 16px 18px;
+  max-width: 230px;
+  animation: riseup 1.2s ease both 0.5s;
+}
+
+.hero-card .pill {
+  display: inline-block;
+  border-left: 2px solid var(--signal);
+  color: var(--signal-deep);
+  padding: 3px 0 3px 10px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+
+.hero-card .artist {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hero-card .cta {
+  font-size: 11px;
+  margin-top: 9px;
+  border-bottom: 1px solid var(--ink);
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+
+.hero-card .cta:hover {
+  color: var(--signal);
+  border-color: var(--signal);
+}
+
+.hero-card .cta:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+/* ============ drift wall — the collection files past the exit's top ============ */
+.driftwall {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 240px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.drift-track {
+  display: flex;
+  align-items: flex-start;
+  gap: 84px;
+  width: max-content;
+  height: 100%;
+  animation: drift 70s linear infinite;
+  padding-left: 40px;
+}
+
+@keyframes drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* muted so the sun field stays dominant and the ink text stays readable; feed.js varies each height/offset for the scattered drift */
+.drift-track img {
+  width: auto;
+  height: 150px;
+  filter: grayscale(20%);
+  opacity: 0.9;
+}
+
+/* ============ the dark room ============
+   the dark room's text follows the body flip: dark-on-white before the flip (so it's contrast-valid below the fold too) and light-on-ink after, crossfading over the 1s flip */
+.darkzone {
+  transition: color 1s ease;
+}
+
+body.dark .darkzone {
+  color: var(--paper);
+}
+
+/* ============ 03 — discover by medium ============ */
+.mediums {
+  text-align: right;
+  padding: 0 var(--gutter) 70px;
+}
+
+.mediums .row {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--serif);
+  /* one uniform size for every row, capped so the longest top-5 medium value   */
+  font-size: clamp(34px, 5vw, 66px);
+  line-height: 1.12;
+  font-weight: 300;
+  transition: transform 0.35s ease;
+}
+
+.mediums .row:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+.mediums .row:hover {
+  transform: translateX(-20px);
+  font-style: italic;
+}
+
+.mediums .row img {
+  display: inline-block;
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  vertical-align: baseline;
+  margin-right: 22px;
+  transition:
+    width 0.35s ease,
+    height 0.35s ease;
+}
+
+.mediums .row:hover img {
+  width: 84px;
+  height: 84px;
+}
+
+.mediums .row sup {
+  font-family: var(--sans);
+  font-size: 18px;
+  /* signal-deep before the flip (readable on white below the fold), the dark room's sun accent after it */
+  color: var(--signal-deep);
+  font-style: normal;
+  transition: color 1s ease;
+}
+
+body.dark .mediums .row sup {
+  color: var(--sun);
+}
+
+.evolving {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 34px;
+  padding: 30px var(--gutter) 110px;
+  text-align: right;
+}
+
+.evolving a {
+  color: var(--signal);
+  text-decoration: none;
+  transition: letter-spacing 0.3s;
+}
+
+.evolving a:hover {
+  letter-spacing: 0.04em;
+}
+
+.evolving a:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+/* ============ yellow exit room ============ */
+.yellow {
+  background: var(--sun);
+  color: var(--ink);
+  padding: 110px var(--gutter) 50px;
+  position: relative;
+  min-height: 74vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* content layers above the drift band; .corner stays absolute */
+.yellow > div:not(.corner):not(.driftwall) {
+  position: relative;
+  z-index: 1;
+}
+
+/* push the headline block clear of the drift band */
+.yellow .driftwall + div {
+  margin-top: 210px;
+}
+
+.yellow .big {
+  font-family: var(--serif);
+  font-size: clamp(40px, 6vw, 64px);
+  line-height: 1.02;
+  max-width: 55%;
+}
+
+/* the CTA's hover stain  */
+.yellow .bigrow {
+  position: relative;
+  width: max-content;
+  max-width: 55%;
+}
+
+.yellow .bigrow .big {
+  max-width: none;
+  transition: opacity 0.5s ease;
+}
+
+.yellow .bigink {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  filter: url(#stain3);
+}
+
+.yellow .bigrow:hover .bigink {
+  opacity: 1;
+}
+
+.yellow .bigrow:hover .big:not(.bigink) {
+  opacity: 0.2;
+}
+
+/* the corner's ladder */
+.yellow .corner {
+  position: absolute;
+  right: var(--gutter);
+  /* sits just below the drift band */
+  top: 272px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 30px;
+  z-index: 1;
+  text-align: right;
+}
+
+.yellow .corner .cecho {
+  margin-top: 6px;
+}
+
+.yellow .cecho.c3 {
+  filter: url(#c3);
+}
+
+.yellow .cecho.c4 {
+  filter: url(#c4);
+}
+
+/* the exit band  */
+.yellow .endline {
+  margin-top: auto;
+  padding-top: 90px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px 40px;
+}
+
+.yellow .endline .colophon {
+  flex: 1;
+  text-align: center;
+}
+
+/* the archive in numbers */
+.yellow .endline .register {
+  display: inline-block;
+  border-bottom: 1px solid rgba(14, 14, 14, 0.35);
+  padding-top: 16px;
+  margin-bottom: 14px;
+  font-family: var(--serif);
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  min-height: 22px;
+}
+
+.yellow .endline .register sup {
+  font-family: var(--sans);
+  font-size: 11px;
+}
+
+.yellow .endline .sayso {
+  font-family: var(--serif);
+  font-size: 19px;
+  border-bottom: 1px solid rgba(14, 14, 14, 0.35);
+}
+
+.yellow .btn {
+  flex: none;
+  padding: 11px 28px;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--sans);
+}
+
+.yellow .pillbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 9px 26px;
+  font-size: 11px;
+  margin-bottom: 4px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.yellow .tickbtn:focus-visible {
+  outline-color: var(--ink);
+}
+
+/* ============ tablet ============ */
+@media (max-width: 1000px) {
+  .yellow .big,
+  .yellow .bigrow {
+    max-width: 70%;
+  }
+}
+
+/* ============ mobile ============ */
+@media (max-width: 720px) {
+  .hero,
+  .skhero {
+    height: 64vh;
+  }
+
+  .herorow {
+    bottom: 22px;
+  }
+
+  .hero-title {
+    font-size: clamp(34px, 12vw, 56px);
+    /* no wet arrival without a visible twin at this size */
+    animation: none;
+  }
+
+  /* no tuned set this small, and touch never sees hover stains */
+  .heroink {
+    display: none;
+  }
+
+  .hero-card {
+    bottom: 16px;
+    max-width: 178px;
+    padding: 12px 14px;
+  }
+
+  /* the decorative drift is off on the compact yellow room */
+  .yellow .driftwall {
+    display: none;
+  }
+
+  .yellow .driftwall + div {
+    margin-top: 0;
+  }
+
+  .mediums {
+    padding-bottom: 44px;
+  }
+
+  .mediums .row img {
+    width: 40px;
+    height: 40px;
+    margin-right: 14px;
+  }
+
+  .evolving {
+    padding-top: 22px;
+    padding-bottom: 70px;
+    font-size: 24px;
+  }
+
+  .yellow {
+    padding-top: 64px;
+    padding-bottom: 40px;
+    min-height: 0;
+  }
+
+  .yellow .big,
+  .yellow .bigrow {
+    max-width: 100%;
+  }
+
+  .yellow .bigink {
+    filter: url(#stain3m);
+  }
+
+  .yellow .corner {
+    position: static;
+    margin-top: 16px;
+  }
+
+  .yellow .endline {
+    padding-top: 60px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 26px;
+  }
+
+  .yellow .endline .colophon {
+    flex: none;
+    text-align: left;
+  }
+}
+
+/* ============ reduced motion ============ */
+@media (prefers-reduced-motion: reduce) {
+  .hero img,
+  .drift-track {
+    animation: none;
+  }
+
+  .hero-title,
+  .heroink {
+    animation: none;
+  }
+
+  .herorow,
+  .hero-card {
+    animation: none;
+  }
+
+  .yellow .bigrow .big,
+  .herorow .hero-title {
+    transition: none;
+  }
+}

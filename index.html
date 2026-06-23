@@ -33,27 +33,597 @@
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Archivo:wght@400;500;600&display=swap"
     />
 
-    <!-- styles — cascade order: tokens → base → components → page -->
+    <!-- styles — cascade order -->
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout/grid.css" />
     <link rel="stylesheet" href="css/components/skip.css" />
+    <link rel="stylesheet" href="css/components/nav.css" />
+    <link rel="stylesheet" href="css/components/footer.css" />
+    <link rel="stylesheet" href="css/components/section.css" />
+    <link rel="stylesheet" href="css/components/card.css" />
+    <link rel="stylesheet" href="css/components/tag.css" />
+    <link rel="stylesheet" href="css/components/button.css" />
+    <link rel="stylesheet" href="css/components/feedback.css" />
+    <link rel="stylesheet" href="css/components/ink.css" />
+    <link rel="stylesheet" href="css/pages/feed.css" />
   </head>
-  <body>
+
+  <!-- is-loading is the default ground so the editorial scaffold can't flash before feed.js takes over; the page module swaps it for is-ready / is-empty / is-error once the fetch resolves -->
+  <body id="top" class="is-loading">
     <a class="skip" href="#main">Skip to content</a>
 
-    <header>
-      <nav aria-label="Primary">
-        <a href="index.html">Nordic Art Archive</a>
-      </nav>
+    <!-- icon sprite — Heroicons outline 24px (MIT) · https://heroicons.com -->
+    <svg style="display: none" aria-hidden="true">
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+      </symbol>
+      <symbol id="i-arrow-up" viewBox="0 0 24 24">
+        <path d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 18 18 6M6 6l12 12" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 4.5v15m7.5-7.5h-15" />
+      </symbol>
+    </svg>
+
+    <!-- the ink — stain filter defs.
+     CANONICAL SOURCE: pages that stain copy the t2–t4 set from here, like the icon sprite; the other sets are the home's own sizes (stain3 = CTA, c3/c4 = corner italic, a3 = hero/display, -m = mobile retunes).
+     The filters never animate — only opacities cross-fade. -->
+    <svg style="display: none" aria-hidden="true">
+      <defs>
+        <filter id="stain3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.026 0.1"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="10"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.45" result="g" />
+          <feGaussianBlur in="g" stdDeviation="3 1.2" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="6 2.5" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <!-- the same level retuned for the mobile ~40px type -->
+        <filter id="stain3m" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.034 0.13"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="7"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.35" result="g" />
+          <feGaussianBlur in="g" stdDeviation="2.1 0.85" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="4.2 1.8" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <!-- corner-size levels (30px italic) for the yellow room's ladder -->
+        <filter id="c3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.04 0.15"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="6"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.3" result="g" />
+          <feGaussianBlur in="g" stdDeviation="1.8 0.75" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="3.6 1.5" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <filter id="c4" x="-40%" y="-180%" width="180%" height="460%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.024 0.075"
+            numOctaves="3"
+            seed="7"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="11"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.4" result="g" />
+          <feGaussianBlur in="g" stdDeviation="2.4 1.4" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="3.6" intercept="-0.7" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="4.8 2.8" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.45" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <!-- a3 — display-size level (~65–124px; reused on the ~92px hero) -->
+        <filter id="a3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.015 0.055"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="16"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.7" result="g" />
+          <feGaussianBlur in="g" stdDeviation="4.5 1.9" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="9 4" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <!-- title-size levels (~30–44px) for the dark-room threshold -->
+        <filter id="t2" x="-25%" y="-120%" width="150%" height="340%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.022 0.09"
+            numOctaves="2"
+            seed="11"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="4.5"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.3" result="g" />
+          <feGaussianBlur in="g" stdDeviation="1" result="b" />
+          <feComponentTransfer in="b">
+            <feFuncA type="linear" slope="11" intercept="-3.4" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="t3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.035 0.13"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="7"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.35" result="g" />
+          <feGaussianBlur in="g" stdDeviation="2.2 0.9" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="4.5 1.8" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <filter id="t4" x="-40%" y="-180%" width="180%" height="460%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.02 0.06"
+            numOctaves="3"
+            seed="7"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="14"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.5" result="g" />
+          <feGaussianBlur in="g" stdDeviation="3 1.8" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="3.6" intercept="-0.7" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="6 3.5" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.45" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- ============ masthead ============ -->
+    <header class="site-head">
+      <div class="utility">
+        <span>a living archive of nordic art — est. 2026</span>
+        <span class="auth">
+          <span class="auth-out"
+            ><a href="account/login.html">log in</a
+            ><a href="account/register.html">register</a></span
+          >
+          <span class="auth-in"
+            ><a href="profile.html">my works</a
+            ><button class="logout" type="button">log out</button></span
+          >
+        </span>
+      </div>
+      <div class="mainrow">
+        <span class="lead"
+          ><a href="collection.html"
+            >all artworks <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg></a
+        ></span>
+        <a class="wordmark" href="index.html"
+          ><img class="naa" src="assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></a
+        >
+        <span class="headtools">
+          <!-- the owner's primary action — only when authed (A.4 wires the toggle) -->
+          <a
+            class="tickbtn menu-btn add-btn auth-in"
+            href="artwork/create.html"
+            aria-label="add artwork"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-plus" /></svg>
+            <span class="lbl">add artwork</span>
+          </a>
+          <a
+            class="tickbtn menu-btn icon-btn"
+            href="collection.html#search"
+            aria-label="search the archive"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-search" /></svg>
+          </a>
+          <button
+            class="tickbtn menu-btn"
+            id="menu-open"
+            type="button"
+            aria-expanded="false"
+            aria-controls="curtain"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-menu" /></svg>
+            menu
+          </button>
+        </span>
+      </div>
     </header>
 
+    <!-- ============ menu curtain ============ -->
+    <div class="curtain" id="curtain" aria-hidden="true">
+      <div class="curtain-top">
+        <span class="wordmark"
+          ><img class="naa" src="assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></span
+        >
+        <button class="tickbtn menu-btn" id="menu-close" type="button">
+          close
+          <svg class="i" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <nav aria-label="site menu">
+        <a href="index.html"
+          ><span class="num">01</span><span class="word">the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="collection.html"
+          ><span class="num">02</span><span class="word">all artworks</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="hands.html"
+          ><span class="num">03</span><span class="word">the hands of the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="account/login.html"
+          ><span class="num">04</span><span class="word">log in</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-in" href="profile.html"
+          ><span class="num">04</span><span class="word">my works</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="account/login.html?from=create"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+          ><span class="tag tag--dark">owners</span></a
+        >
+        <a class="auth-in" href="artwork/create.html"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+      </nav>
+      <div class="curtain-mark" aria-hidden="true">nordic <em>art archive</em></div>
+    </div>
+
     <main id="main">
-      <h1>Nordic Art Archive</h1>
-      <p>The artworks feed lands here. The archive is being built.</p>
+      <!-- the page's stable heading — present in every state, so the heading order is always valid; the hero's display title is a <p> set by feed.js -->
+      <h1 class="vh">Nordic Art Archive</h1>
+
+      <!-- primary feed region — #feed-view holds the hero + the 01 grid; #feed-state holds the empty / error block.
+           The view is hidden, never destroyed, so "try again" can rebuild it.
+           One <h1> (the hero title) renders in the view. -->
+      <div id="feed-region">
+        <div id="feed-view">
+          <section class="hero" id="hero" aria-busy="true" aria-label="featured artwork">
+            <!-- feed.js: <img> + herorow(h1 + ink twin) + hero-card -->
+          </section>
+
+          <div class="section-head">
+            <div>
+              <div class="kicker">01 — the feed</div>
+              <h2 class="title">newest artworks</h2>
+            </div>
+            <a class="arrow" href="collection.html"
+              >see all <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+            ></a>
+          </div>
+
+          <section class="chaos" id="feed-grid" aria-busy="true">
+            <!-- feed.js: artwork cards (data-driven chaos placement) / skeletons -->
+          </section>
+
+          <p class="status" id="feed-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <!-- feed.js renders the empty / error block here (via ui.js) -->
+        <div id="feed-state"></div>
+      </div>
+
+      <!-- the threshold — the dark room's head, its title over-printed and soaking toward the body flip. -->
+      <div class="threshold">
+        <div class="section-head">
+          <div>
+            <div class="kicker">02 — the dark room</div>
+            <!-- content-neutral title: the shared pool's works are arbitrary -->
+            <div class="trow">
+              <h2 class="title">deeper in the archive</h2>
+              <span class="title lv-t" aria-hidden="true">deeper in the archive</span>
+            </div>
+          </div>
+          <!-- feed.js points this at the featured work's connections; collection.html is the no-JS fallback -->
+          <a class="arrow" href="collection.html"
+            >explore connections
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+          ></a>
+        </div>
+        <div class="soakstack" id="soakstack" aria-hidden="true">
+          <div class="row">
+            <span class="lv a t2">deeper in the archive</span>
+            <span class="lv b t3">deeper in the archive</span>
+          </div>
+          <div class="row">
+            <span class="lv a t3">deeper in the archive</span>
+            <span class="lv b t4">deeper in the archive</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- sentinels — the body flip toggles between these (the home's one flip) -->
+      <div id="dark-start"></div>
+
+      <section class="darkzone">
+        <div class="chaos" id="dark-grid">
+          <!-- feed.js: dark-room cards; the first straddles the seam -->
+        </div>
+
+        <div class="section-head">
+          <div>
+            <div class="kicker">03 — ways in</div>
+            <h2 class="title">discover by medium</h2>
+          </div>
+        </div>
+
+        <!-- feed.js: top-5 mediums by count, each row → collection ?medium= -->
+        <div class="mediums" id="medium-list"></div>
+
+        <div class="evolving r">
+          <a href="collection.html"
+            >always evolving <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+          ></a>
+        </div>
+      </section>
+
+      <div id="dark-end"></div>
+
+      <section class="yellow">
+        <!-- the collection drifts past behind the exit (decorative; feed.js fills it from the loaded works) -->
+        <div class="driftwall" aria-hidden="true">
+          <div class="drift-track" id="drift"></div>
+        </div>
+        <div>
+          <!-- the CTA reads clean; it takes ink only under the cursor -->
+          <div class="bigrow r">
+            <div class="big">discover the full archive</div>
+            <div class="big bigink" aria-hidden="true">discover the full archive</div>
+          </div>
+        </div>
+        <!-- the corner carries the visible ladder — crisp + levels 3·4 -->
+        <div class="corner">
+          <div>always growing</div>
+          <div aria-hidden="true">
+            <div class="cecho c3">always growing</div>
+            <div class="cecho c4">always growing</div>
+          </div>
+        </div>
+        <div class="endline r">
+          <a class="btn tickbtn" href="collection.html"
+            >browse all artworks
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+          ></a>
+          <div class="colophon">
+            <!-- the archive in numbers — feed.js writes it from meta.totalCount + the counts derived from the fetched list -->
+            <div class="register" id="register"></div>
+            <div class="sayso">You've reached the end of the archive — <em>for now.</em></div>
+          </div>
+          <a class="pillbtn tickbtn" href="#top"
+            >back to top <svg class="i" aria-hidden="true"><use href="#i-arrow-up" /></svg
+          ></a>
+        </div>
+      </section>
     </main>
 
-    <footer>
-      <p>Nordic Art Archive</p>
+    <footer class="fC">
+      <div class="fhead">
+        <div class="fin">fin — the exit</div>
+      </div>
+      <div class="fmid">
+        <nav class="fcols" aria-label="footer">
+          <div class="fcol">
+            <div class="fkick">01 — wander</div>
+            <a href="collection.html"
+              >all artworks
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="collection.html"
+              >by medium
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="hands.html"
+              >the hands of the archive
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+          </div>
+          <div class="fcol">
+            <div class="fkick">02 — account</div>
+            <span class="auth-out">
+              <a href="account/login.html"
+                >log in
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="account/register.html"
+                >register
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="account/login.html?from=create"
+                >add artwork <span class="tag tag--dark">owners</span></a
+              >
+            </span>
+            <span class="auth-in">
+              <a href="profile.html"
+                >my works
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="artwork/create.html"
+                >add artwork
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <button class="logout" type="button">log out</button>
+            </span>
+          </div>
+        </nav>
+        <img class="stamp" src="assets/img/naa-stamp-sun-on-ink.svg" alt="" />
+      </div>
+      <div class="legal">© 2026 Nordic Art Archive — a fictional archive built for Noroff EP1</div>
     </footer>
+
+    <noscript>
+      <p class="noscript-note">
+        The Nordic Art Archive loads its artworks with JavaScript. Please enable it to browse the
+        archive.
+      </p>
+    </noscript>
+
+    <script type="module" src="js/pages/feed.js"></script>
   </body>
 </html>

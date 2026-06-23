@@ -11,7 +11,7 @@ The .arrow is the shared text link. */
   border-top: 1px solid rgba(14, 14, 14, 0.25);
 }
 
-.darkzone .section-head {
+body.dark .darkzone .section-head {
   border-top-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -24,7 +24,7 @@ The .arrow is the shared text link. */
   margin-bottom: 12px;
 }
 
-.darkzone .section-head .kicker {
+body.dark .darkzone .section-head .kicker {
   color: var(--sun);
 }
 
@@ -48,7 +48,7 @@ The .arrow is the shared text link. */
   color: var(--signal);
 }
 
-.darkzone .arrow:hover {
+body.dark .darkzone .arrow:hover {
   color: var(--sun);
 }
 
@@ -57,7 +57,7 @@ The .arrow is the shared text link. */
   outline-offset: 3px;
 }
 
-.darkzone .arrow:focus-visible {
+body.dark .darkzone .arrow:focus-visible {
   outline-color: var(--sun);
 }
 

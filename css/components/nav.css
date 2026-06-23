@@ -475,6 +475,13 @@ Inert until its swap script runs; each page carries its own .menu-preview markup
     transition: none;
   }
 
+  /* the links arrive already in place — no slide/stagger under reduced motion */
+  .curtain.open nav a {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .curtain nav a::before {
     transition: none;
   }
