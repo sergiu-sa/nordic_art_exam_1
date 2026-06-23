@@ -144,3 +144,149 @@ export const DARK_PATTERN = [
 export function assignPlacement(items = [], pattern = FEED_PATTERN) {
   return items.map((item, index) => ({ item, slot: pattern[index % pattern.length] }));
 }
+
+/* ---- detail-page shaping ---- */
+
+// Case-insensitive, whitespace-trimmed equality; blank never matches blank.
+function sameText(a, b) {
+  const x = String(a ?? "")
+    .trim()
+    .toLowerCase();
+  const y = String(b ?? "")
+    .trim()
+    .toLowerCase();
+  return x !== "" && x === y;
+}
+
+// There is no relations data, so related works are a client-side heuristic:
+// same artist → same medium → same location → nearest year.
+// Each kept work carries the reason that placed it; the current work and the
+// shared pool's junk are excluded, and a work appears once under its highest
+// reason.
+export function relatedArtworks(current, list = [], { limit = 4 } = {}) {
+  if (!current) return [];
+  const currentId = current.id;
+  const candidates = usableArtworks(list).filter((work) =>
+    currentId ? work.id !== currentId : work !== current
+  );
+
+  const chosen = [];
+  const taken = new Set();
+  const take = (work, reason) => {
+    if (taken.has(work)) return;
+    taken.add(work);
+    chosen.push({ work, reason });
+  };
+
+  for (const work of candidates) {
+    if (sameText(work.artist, current.artist)) take(work, `also ${String(work.artist).trim()}`);
+  }
+  for (const work of candidates) {
+    if (sameText(work.medium, current.medium)) take(work, `also ${String(work.medium).trim()}`);
+  }
+  for (const work of candidates) {
+    if (sameText(work.location, current.location)) {
+      take(work, `also from ${String(work.location).trim()}`);
+    }
+  }
+
+  // the rest, nearest year first; "same era" only when both years are real
+  const currentYear = Number(formatYear(current.year));
+  candidates
+    .filter((work) => !taken.has(work))
+    .map((work) => {
+      const dated = Boolean(formatYear(work.year)) && Boolean(formatYear(current.year));
+      const distance = dated ? Math.abs(Number(formatYear(work.year)) - currentYear) : Infinity;
+      return { work, distance, dated };
+    })
+    .sort((a, b) => a.distance - b.distance)
+    .forEach(({ work, dated }) => take(work, dated ? "same era" : "also in the archive"));
+
+  return chosen.slice(0, limit);
+}
+
+// Prev/next walk along the fetched list order, by id; null past either end or when the current work isn't in the list (the band hides that side).
+export function neighbours(current, list = []) {
+  const id = current?.id;
+  const index = id ? list.findIndex((work) => work.id === id) : -1;
+  if (index === -1) return { prev: null, next: null };
+  return { prev: list[index - 1] ?? null, next: list[index + 1] ?? null };
+}
+
+// "In detail" is three fixed close-ups of the ONE API image.
+// The window shapes follow the work's own orientation; the captions stay positional, so they never imply a second work.
+const CROP_CAPTIONS = ["detail — upper centre", "detail — lower left", "detail — right edge"];
+
+const CROP_SETS = {
+  landscape: [
+    { w: 400, aspectRatio: 1.5, originX: 50, originY: 6 },
+    { w: 300, aspectRatio: 0.8, originX: 8, originY: 92 },
+    { w: 352, aspectRatio: 1.5, originX: 82, originY: 38 },
+  ],
+  portrait: [
+    { w: 300, aspectRatio: 0.8, originX: 50, originY: 8 },
+    { w: 360, aspectRatio: 1.5, originX: 15, originY: 60 },
+    { w: 300, aspectRatio: 0.78, originX: 82, originY: 30 },
+  ],
+  square: [
+    { w: 360, aspectRatio: 1.0, originX: 50, originY: 10 },
+    { w: 300, aspectRatio: 0.85, originX: 12, originY: 85 },
+    { w: 340, aspectRatio: 1.3, originX: 80, originY: 40 },
+  ],
+};
+
+export function cropSet(ratio) {
+  const value = Number(ratio);
+  let orientation = "square";
+  if (Number.isFinite(value) && value > 0) {
+    if (value >= 1.2) orientation = "landscape";
+    else if (value <= 1 / 1.2) orientation = "portrait";
+  }
+  const windows = CROP_SETS[orientation].map((win, index) => ({
+    ...win,
+    caption: CROP_CAPTIONS[index],
+  }));
+  return { orientation, windows };
+}
+
+// The entry sentence, templated from real fields only — empties drop;
+// The artist is emphasised. Returns segments so the renderer can italicise it.
+export function introSegments(work = {}) {
+  const medium = String(work.medium ?? "").trim();
+  const artist = String(work.artist ?? "").trim();
+  const year = formatYear(work.year);
+  const location = String(work.location ?? "").trim();
+
+  const segments = [];
+  const lead = `A ${medium || "work"}`;
+  if (artist) {
+    segments.push({ text: `${lead} by ` });
+    segments.push({ text: artist, em: true });
+  } else {
+    segments.push({ text: lead });
+  }
+
+  let tail = "";
+  if (year) tail += `, ${year}`;
+  tail += " — ";
+  tail += location
+    ? `kept in ${location}, part of the living archive.`
+    : "part of the living archive.";
+  segments.push({ text: tail });
+  return segments;
+}
+
+// Free-text descriptions: paragraphs split on blank lines; an unbroken blob is one paragraph; empty or whitespace-only yields [].
+export function splitParagraphs(text) {
+  return String(text ?? "")
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+const SHORT_DESCRIPTION_MAX = 400;
+
+// Description length picks the story layout: under the threshold reads as a single column (facts-card-led), over it as the two-column spread.
+export function isShortDescription(text, threshold = SHORT_DESCRIPTION_MAX) {
+  return String(text ?? "").trim().length < threshold;
+}
