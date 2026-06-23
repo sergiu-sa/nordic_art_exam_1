@@ -77,12 +77,12 @@ Image scales inside the crop on hover/focus; the whole card is one link. */
   transform: none;
 }
 
-/* on the ink ground (the dark room) the captions lighten */
-.darkzone .card figcaption {
+/* on the ink ground (after the body flips) the captions lighten */
+body.dark .darkzone .card figcaption {
   color: var(--grey-300);
 }
 
-.darkzone .card figcaption .a {
+body.dark .darkzone .card figcaption .a {
   color: var(--grey-400);
 }
 

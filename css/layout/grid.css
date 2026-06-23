@@ -1,0 +1,31 @@
+/* Chaos grid — the staggered 12-column artwork wall.
+   The grid is only the mechanism.
+   The .card's own visuals live in card.css; placement never does. */
+
+.chaos {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0 18px;
+  padding: 0 var(--gutter);
+}
+
+/* the dark room's first work can pull up across the flip seam (a negative margin-top from the pattern) — the section's top padding gives it room */
+.darkzone .chaos {
+  padding-top: 90px;
+}
+
+@media (max-width: 720px) {
+  /* the wall collapses to a single column; the data-driven spans + offsets are inline styles, so the reset must out-rank them (!important beats a non-important inline declaration) */
+  .chaos {
+    display: block;
+  }
+
+  .chaos .card {
+    grid-column: auto !important;
+    margin-top: 0 !important;
+  }
+
+  .darkzone .chaos {
+    padding-top: 40px;
+  }
+}

@@ -1,0 +1,135 @@
+/* The ink — the stain kit.
+   Over-printed type: one crisp impression (the real text) + aria-hidden echoes through the soak levels.
+   The SVG filter defs live inline per page(copied from index.html's canonical block, like the icon sprite); levels are px-tuned per type size — the t-set fits 30–44px titles.
+   The filters never animate — only opacities cross-fade (the scroll soak + hover twin).
+   The page-specific stains (hero, CTA, corner ladder) live in pages/feed.css. */
+
+/* the threshold */
+.threshold {
+  padding-bottom: 120px;
+  transition: color 1s ease;
+}
+
+body.dark .threshold {
+  color: var(--paper);
+}
+
+.threshold .section-head {
+  margin-bottom: 14px;
+  transition: border-top-color 1s ease;
+}
+
+body.dark .threshold .section-head {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+.threshold .kicker {
+  transition: color 1s ease;
+}
+
+body.dark .threshold .kicker {
+  color: var(--sun);
+}
+
+body.dark .threshold .arrow:hover {
+  color: var(--sun);
+}
+
+body.dark .threshold .arrow:focus-visible {
+  outline-color: var(--sun);
+}
+
+/* the title's hover twin — ink only while the cursor rests on it */
+.trow {
+  position: relative;
+}
+
+.trow .lv-t {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  filter: url(#t2);
+  transition: opacity 0.5s ease;
+}
+
+.trow h2 {
+  transition: opacity 0.5s ease;
+}
+
+.trow:hover .lv-t {
+  opacity: 1;
+}
+
+.trow:hover h2 {
+  opacity: 0.2;
+}
+
+/* the soak stack — echo rows cross-faded level to level by the scroll scrub  */
+.soakstack {
+  padding: 0 var(--gutter);
+}
+
+.soakstack .row {
+  position: relative;
+}
+
+.soakstack .lv {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.12;
+  white-space: nowrap;
+  /* the scrub fades these in; until it runs the threshold reads as just the crisp h2. Reduced motion overrides below. */
+  opacity: 0;
+}
+
+.soakstack .lv.b {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+/* the wet impression drifts a touch, like the dragged smear */
+.soakstack .row:nth-child(2) .lv.b {
+  transform: translateX(0.06em);
+}
+
+.t2 {
+  filter: url(#t2);
+}
+
+.t3 {
+  filter: url(#t3);
+}
+
+.t4 {
+  filter: url(#t4);
+}
+
+@media (max-width: 720px) {
+  .threshold {
+    padding-bottom: 60px;
+  }
+
+  .soakstack .lv {
+    white-space: normal;
+  }
+}
+
+/* motion off: the ladder shows fully soaked and static */
+@media (prefers-reduced-motion: reduce) {
+  .soakstack .lv.b {
+    opacity: 1 !important;
+  }
+
+  .soakstack .lv.a {
+    opacity: 0.2 !important;
+  }
+
+  .trow .lv-t,
+  .trow h2 {
+    transition: none;
+  }
+}
