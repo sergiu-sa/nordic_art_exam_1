@@ -1,0 +1,955 @@
+/* Artwork detail
+
+Page-specific sections: Tokens, base, chrome, and the shared atoms live in their own files;
+This file owns only what's unique to the detail page.
+The page has NO body flip — the connections block tints the SECTION to ink (the home's flip mechanic painted on one section), so colour stays a block. */
+
+/* the orchestrated entrance for the white entry block; the work appears when the fetch resolves (is-ready), so the rise plays as the entry is shown */
+@keyframes riseup {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Page states — loading / not found / error  */
+.wallstate {
+  display: none;
+}
+
+body.is-loading .wallstate,
+body.is-notfound .wallstate,
+body.is-error .wallstate {
+  display: block;
+}
+
+/* the work hides in every non-ready state */
+body.is-loading .work,
+body.is-notfound .work,
+body.is-error .work {
+  display: none;
+}
+
+/* the empty frame straddles its own ink band (top:50% catches the lower half at any size, no measuring needed) */
+.statewall {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 56px var(--gutter) 40px;
+}
+
+.statewall::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  bottom: 0;
+  background: var(--ink);
+}
+
+.frame.empty .emptyface {
+  position: relative;
+  width: min(72vw, 560px);
+  aspect-ratio: 3 / 2;
+}
+
+/* the light sweep (.skeleton) only soaks the waiting frame while loading */
+body:not(.is-loading) .wallstate .skeleton::after {
+  animation: none;
+  opacity: 0;
+}
+
+.statecopy {
+  text-align: center;
+  padding: 34px var(--gutter) 0;
+}
+
+/* centre the form kit's walking hairline under the status line */
+.statecopy .status .lbar {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.statecopy .statebtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  justify-content: center;
+}
+
+/* dead image: the work exists, its image doesn't — the page stays, the frame shows a placeholder, and the crops (zooms of that one image) drop out */
+.frame .noimg {
+  display: none;
+  width: min(72vw, 560px);
+  aspect-ratio: 3 / 2;
+  align-items: center;
+  justify-content: center;
+  background: var(--grey-300);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--grey-700);
+}
+
+body.is-noimage #art-image {
+  display: none;
+}
+
+body.is-noimage .frame .noimg {
+  display: flex;
+}
+
+body.is-noimage #fullsize,
+body.is-noimage #indetail {
+  display: none;
+}
+
+/* ============ white entry — the wall label ============ */
+.entry {
+  padding: 64px var(--gutter) 56px;
+  text-align: center;
+}
+
+.entry .label {
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--signal-deep);
+  animation: riseup 0.9s ease both 0.15s;
+}
+
+/* the wrapper hugs the text so the centred empty space either side doesn't arm the hover, and carries the rise so the twin lifts with the title */
+.entry .htitle {
+  position: relative;
+  display: inline-block;
+  margin-top: 18px;
+  animation: riseup 1.2s ease both 0.3s;
+}
+
+.entry .art-title,
+.entry .h1ink {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(44px, 8vw, 92px);
+  line-height: 0.95;
+}
+
+.entry .art-title {
+  transition: opacity 0.5s ease;
+}
+
+/* the title's hover stain twin — ink soaks in only while the cursor rests on it (a3 display set; ornament only, the real heading is the vh <h1>) */
+.entry .h1ink {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  filter: url(#a3);
+  transition: opacity 0.5s ease;
+}
+
+.entry .htitle:hover .art-title {
+  opacity: 0.2;
+}
+
+.entry .htitle:hover .h1ink {
+  opacity: 1;
+}
+
+.intro {
+  max-width: 620px;
+  margin: 44px auto 0;
+  padding: 0 18px;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(20px, 2.6vw, 26px);
+  line-height: 1.45;
+  animation: riseup 1.2s ease both 0.5s;
+}
+
+.intro em {
+  font-style: italic;
+}
+
+.tagrow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 28px;
+  margin: 44px auto 0;
+  padding: 0 18px;
+  animation: riseup 1.2s ease both 0.65s;
+}
+
+/* ============ the wall ============ */
+.wall {
+  position: relative;
+  padding: 90px var(--gutter) 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* the band reveals once the wall scrolls into view, then stays.
+Its top is computed from the frame (placeBand in artwork.js) so it catches the work's lower ~45% on ANY ratio; 395px is the pre-JS fallback. */
+.wall::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--band-top, 395px);
+  bottom: -300px;
+  background: var(--ink);
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.wall.on::before {
+  opacity: 1;
+}
+
+/* the spotlight the system specs: a faint warm bloom pooling on the ink below the work; kept low so the page's single black accent stays a
+   band, not a glow show */
+.wall::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--band-top, 395px);
+  bottom: -300px;
+  background: radial-gradient(
+    58% 64% at 50% 26%,
+    rgba(255, 244, 214, 0.11),
+    rgba(255, 244, 214, 0) 72%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.1s ease;
+  z-index: 1;
+}
+
+.wall.on::after {
+  opacity: 1;
+}
+
+.frame {
+  position: relative;
+  z-index: 2;
+  background: var(--paper);
+  padding: 14px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5);
+}
+
+/* the work commands the wall — caps on both axes so the binding one follows the art's own ratio: portrait caps on height, landscape on width */
+.frame img {
+  max-height: 84vh;
+  max-width: min(92vw, 1060px);
+  width: auto;
+  height: auto;
+}
+
+/* the frame "hangs" — drops in with a settle (overrides the base .r rise) */
+.frame.r {
+  transform: translateY(-34px);
+  transition:
+    opacity 0.9s ease,
+    transform 0.9s cubic-bezier(0.34, 1.45, 0.45, 1);
+}
+
+.frame.r.in {
+  transform: none;
+}
+
+/* sits on the ink band below the frame */
+.wall .fullsize {
+  position: relative;
+  z-index: 2;
+  margin-top: 24px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey-300);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.wall .fullsize:hover {
+  color: var(--sun);
+}
+
+.wall .fullsize:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+.wall .fullsize .i {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+/* ============ in detail — close-ups cropped from the one API image ============ */
+.indetail {
+  position: relative;
+  z-index: 1;
+  padding: 90px var(--gutter) 0;
+}
+
+.indetail .dkick {
+  display: inline-block;
+  border-left: 2px solid var(--signal);
+  padding: 3px 0 3px 10px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  /* sits on the band's tail */
+  color: var(--grey-300);
+  margin-bottom: 36px;
+}
+
+.indetail .crops {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 44px clamp(40px, 6vw, 90px);
+}
+
+.crop {
+  margin: 0;
+}
+
+/* same white mat as the main frame; width rides a per-crop --w so mobile can shrink all three from one rule; aspect-ratio (set inline) holds the shape */
+.crop .cwrap {
+  position: relative;
+  overflow: hidden;
+  width: var(--w, 300px);
+  border: 12px solid var(--paper);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+}
+
+.crop img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* the covered image scaled up around a per-crop transform-origin (set inline) */
+  transform: scale(2.5);
+}
+
+.crop figcaption {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--grey-700);
+  margin-top: 9px;
+}
+
+/* ============ the story — white editorial spread ============ */
+.story {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 330px);
+  gap: 56px clamp(44px, 6vw, 90px);
+  padding: 0 var(--gutter);
+  align-items: start;
+}
+
+.reading {
+  columns: 2;
+  column-gap: 44px;
+  max-width: 760px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--grey-700);
+}
+
+.reading p + p {
+  margin-top: 1em;
+}
+
+/* short descriptions (the API ranges from one word to long prose): artwork.js adds .short under ~400 chars — a single column, no spread */
+.reading.short {
+  columns: 1;
+}
+
+.credit {
+  margin-top: 40px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--grey-700);
+}
+
+.credit a {
+  color: var(--signal-deep);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(192, 38, 11, 0.4);
+  transition: border-color 0.3s;
+}
+
+.credit a:hover {
+  border-color: var(--signal-deep);
+}
+
+.credit a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.facts {
+  border: 1px solid rgba(14, 14, 14, 0.3);
+  padding: 24px 26px;
+}
+
+.facts .fkicker {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--signal-deep);
+  margin-bottom: 12px;
+}
+
+.facts dl {
+  margin: 0;
+}
+
+.facts .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 9px 0;
+  border-top: 1px solid rgba(14, 14, 14, 0.15);
+}
+
+.facts .row:first-child {
+  border-top: none;
+}
+
+.facts dt {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-700);
+  padding-top: 3px;
+}
+
+.facts dd {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14.5px;
+  text-align: right;
+}
+
+/* owner tools — visible only when authed + the owner */
+.facts .owner {
+  margin-top: 18px;
+  border-top: 1px solid rgba(14, 14, 14, 0.15);
+  padding-top: 16px;
+}
+
+.facts .owner .fkicker {
+  color: var(--grey-700);
+  font-weight: 400;
+}
+
+.facts .tools {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* composes the shared .tickbtn (corner frame + focus ring); this adds only the facts-card padding + type */
+.facts .tickbtn {
+  display: inline-block;
+  padding: 8px 18px;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.facts .tickbtn.warn {
+  color: var(--signal-deep);
+}
+
+/* ============ connections  ============ 
+The constellation on a section that tints to ink while the visitor is inside it */
+#connzone {
+  padding-bottom: 34px;
+  background-color: transparent;
+  transition: background-color 1s ease;
+}
+
+#connzone.night {
+  background-color: var(--ink);
+}
+
+/* the section's furniture rides the tint to the dark ground over the same 1s */
+#connzone .section-head {
+  transition: border-top-color 1s ease;
+}
+
+#connzone .kicker,
+#connzone .title,
+#connzone .arrow,
+#connzone .node a,
+#connzone .youare {
+  transition: color 1s ease;
+}
+
+#connzone .lines line {
+  transition: stroke 1s ease;
+}
+
+#connzone .lines circle {
+  transition: fill 1s ease;
+}
+
+#connzone.night .section-head {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+#connzone.night .kicker {
+  color: var(--sun);
+}
+
+#connzone.night .title {
+  color: var(--paper);
+}
+
+#connzone.night .arrow {
+  color: var(--grey-300);
+}
+
+#connzone.night .arrow:hover {
+  color: var(--sun);
+}
+
+#connzone.night .arrow:focus-visible {
+  outline-color: var(--sun);
+}
+
+#connzone.night .lines line {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+#connzone.night .lines circle {
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+#connzone.night .node a {
+  color: var(--grey-300);
+}
+
+#connzone.night .node a:focus-visible {
+  outline-color: var(--sun);
+}
+
+#connzone.night .youare {
+  color: var(--sun);
+}
+
+.constellation {
+  position: relative;
+  height: 580px;
+  margin: 30px var(--gutter) 0;
+}
+
+.constellation .lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.constellation .lines line {
+  stroke: rgba(14, 14, 14, 0.22);
+  stroke-width: 1px;
+}
+
+/* the dot where a thread meets a frame */
+.constellation .lines circle {
+  fill: rgba(14, 14, 14, 0.4);
+}
+
+/* drift is driven by the thread script so the lines stay attached */
+.node {
+  position: absolute;
+}
+
+.node a {
+  display: block;
+  color: var(--grey-700);
+  text-decoration: none;
+  transition: transform 0.35s ease;
+}
+
+.node a:hover,
+.node a:focus-visible {
+  transform: translateY(-6px) scale(1.03);
+}
+
+.node a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 5px;
+}
+
+.node img {
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+}
+
+.node .why {
+  display: block;
+  margin-top: 9px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12.5px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.node a:hover .why,
+.node a:focus-visible .why {
+  opacity: 1;
+}
+
+.node.here {
+  text-align: center;
+}
+
+.node.here .youare {
+  display: inline-block;
+  margin-top: 10px;
+  border-left: 2px solid var(--signal);
+  padding: 3px 0 3px 10px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--signal-deep);
+}
+
+/* ============ back in daylight — more from the archive ============ */
+/* The more-section has no bottom padding */
+.walkon {
+  margin: 26px var(--gutter) 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(20px, 2.6vw, 30px);
+}
+
+.walkon a {
+  /* --signal-deep, not --signal: at the 20px mobile size this isn't "large text", so the serif link must clear AA 4.5:1 on white  */
+  color: var(--signal-deep);
+  text-decoration: none;
+  transition: letter-spacing 0.3s;
+}
+
+.walkon a:hover {
+  letter-spacing: 0.04em;
+}
+
+.walkon a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 5px;
+}
+
+.walkon .i {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+/* ============ previous / next — step along the wall ============
+   register-row language: roman serif titles that italicise on hover while the neighbour's work grows in big beside the row */
+.pn {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px clamp(24px, 4vw, 60px);
+  margin: 110px 0 0;
+  /* deep enough for the lifted neighbour print to sit inside */
+  padding: 24px var(--gutter) 130px;
+  /* the walk-on band: the ground turns sun while the visitor weighs the  neighbours (hover/focus only ), hairline to footer */
+  transition: background-color 0.7s ease;
+}
+
+.pn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--gutter);
+  right: var(--gutter);
+  border-top: 1px solid rgba(14, 14, 14, 0.25);
+}
+
+.pn:hover,
+.pn:focus-within {
+  background: var(--sun);
+}
+
+.pn a {
+  position: relative;
+  display: block;
+  max-width: 46%;
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.35s ease;
+}
+
+/* the active row steps toward its neighbour */
+.pn-prev:hover,
+.pn-prev:focus-visible {
+  transform: translateX(16px);
+}
+
+.pn-next:hover,
+.pn-next:focus-visible {
+  transform: translateX(-16px);
+}
+
+.pn-next {
+  text-align: right;
+  margin-left: auto;
+}
+
+/* inline, lowercase, quiet — flips vermilion on hover, mirrored per side */
+.pn .lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  transition: color 0.3s;
+}
+
+.pn-prev .lbl {
+  margin-left: 14px;
+}
+
+.pn-next .lbl {
+  margin-right: 14px;
+}
+
+.pn .ttl {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(26px, 3.5vw, 46px);
+  line-height: 1.12;
+}
+
+/* the neighbour taken down for a look: on hover the work appears big in the  band's centre gap, beside its row  */
+.pn .pthumb {
+  position: absolute;
+  top: 4px;
+  height: 140px;
+  width: auto;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+  transform: scale(0.75);
+  transform-origin: center;
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.6, 0.2, 1),
+    opacity 0.35s ease;
+}
+
+.pn-prev .pthumb {
+  left: calc(100% + 26px);
+}
+
+.pn-next .pthumb {
+  right: calc(100% + 26px);
+}
+
+.pn a:hover .ttl,
+.pn a:focus-visible .ttl {
+  font-style: italic;
+}
+
+.pn a:hover .pthumb,
+.pn a:focus-visible .pthumb {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pn a:focus-visible {
+  /* --ink, not --signal: focus-within turns this band's ground sun, where a vermilion ring is only ~3:1;  */
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+
+.pn .i {
+  flex: none;
+}
+
+/* ============ no-JS note ============ */
+.noscript-note {
+  margin: 40px var(--gutter);
+  padding: 18px 20px;
+  border-left: 2px solid var(--signal);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--grey-700);
+}
+
+/* ============ mobile ============ */
+@media (max-width: 720px) {
+  .entry {
+    padding: 56px var(--gutter) 36px;
+  }
+
+  /* the title floors near 44px here and touch never hovers */
+  .entry .h1ink {
+    display: none;
+  }
+
+  .entry .htitle:hover .art-title {
+    opacity: 1;
+  }
+
+  .wall {
+    padding: 56px var(--gutter) 80px;
+  }
+
+  /* top comes from placeBand() via --band-top; only the tail differs */
+  .wall::before,
+  .wall::after {
+    bottom: -160px;
+  }
+
+  .frame {
+    padding: 9px;
+  }
+
+  .frame img {
+    max-width: 88vw;
+    max-height: 64vh;
+  }
+
+  /* the larger windows would overflow a phone — one rule shrinks all three */
+  .crop .cwrap {
+    width: min(86vw, 360px);
+  }
+
+  /* the constellation collapses to a wrapped row; the threads are hidden */
+  .constellation {
+    height: auto;
+    margin: 10px var(--gutter) 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 26px 22px;
+    justify-content: center;
+  }
+
+  .constellation .lines {
+    display: none;
+  }
+
+  .node {
+    position: static;
+  }
+
+  .node .why {
+    opacity: 1;
+  }
+
+  .story {
+    display: block;
+  }
+
+  .reading {
+    columns: 1;
+  }
+
+  .facts {
+    margin-top: 44px;
+    max-width: 420px;
+  }
+
+  .pn {
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 70px;
+    padding-bottom: 56px;
+  }
+
+  .pn a {
+    max-width: 100%;
+  }
+
+  .pn-next {
+    align-self: flex-end;
+  }
+
+  /* no hover on touch — the lifted print stays on the shelf */
+  .pn .pthumb {
+    display: none;
+  }
+}
+
+/* ============ reduced motion ============ */
+@media (prefers-reduced-motion: reduce) {
+  .entry .label,
+  .entry .htitle,
+  .intro,
+  .tagrow {
+    animation: none;
+  }
+
+  /* the ink twin still works as an instant swap, just no fade */
+  .entry .art-title,
+  .entry .h1ink {
+    transition: none;
+  }
+
+  /* the band + spotlight show immediately, no fade-in on scroll */
+  .wall::before,
+  .wall::after {
+    opacity: 1;
+    transition: none;
+  }
+
+  /* the frame is hung, not dropped */
+  .frame.r {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* the lifted neighbour print appears instantly */
+  .pn .pthumb,
+  .pn a,
+  .node a {
+    transition: none;
+  }
+
+  /* the walk-on band turns sun instantly, no 0.7s fade */
+  .pn {
+    transition: none;
+  }
+
+  /* the connections section still tints to ink, but instantly — no 1s scroll-coupled colour fades on the section or its furniture */
+  #connzone,
+  #connzone .section-head,
+  #connzone .kicker,
+  #connzone .title,
+  #connzone .arrow,
+  #connzone .node a,
+  #connzone .youare,
+  #connzone .lines line,
+  #connzone .lines circle {
+    transition: none;
+  }
+}
