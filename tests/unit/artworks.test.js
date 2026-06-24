@@ -13,6 +13,12 @@ import {
   assignPlacement,
   FEED_PATTERN,
   DARK_PATTERN,
+  relatedArtworks,
+  neighbours,
+  cropSet,
+  introSegments,
+  splitParagraphs,
+  isShortDescription,
 } from "../../js/artworks.js";
 
 // A minimal usable artwork; override fields per case.
@@ -210,5 +216,199 @@ describe("assignPlacement", () => {
     const items = Array.from({ length: DARK_PATTERN.length + 1 }, () => art());
     const placed = assignPlacement(items, DARK_PATTERN);
     expect(placed[DARK_PATTERN.length].slot).toBe(DARK_PATTERN[0]);
+  });
+});
+
+// ---- detail-page shaping ----
+
+describe("relatedArtworks", () => {
+  const current = art({
+    id: "c",
+    artist: "Sohlberg",
+    medium: "painting",
+    location: "Norway",
+    year: 1914,
+  });
+
+  it("ranks artist → medium → location → nearest year, with reason lines", () => {
+    const list = [
+      current,
+      art({
+        id: "a4",
+        artist: "Gallen-Kallela",
+        medium: "sculpture",
+        location: "Finland",
+        year: 1910,
+      }),
+      art({ id: "a1", artist: "sohlberg", medium: "print", location: "Sweden", year: 1900 }),
+      art({ id: "a3", artist: "Kittelsen", medium: "drawing", location: "norway", year: 1887 }),
+      art({ id: "a2", artist: "Munch", medium: "Painting", location: "Sweden", year: 1893 }),
+      art({ id: "a5", artist: "Dahl", medium: "sketch", location: "Denmark", year: 1850 }),
+    ];
+    const related = relatedArtworks(current, list, { limit: 4 });
+    expect(related.map((r) => [r.work.id, r.reason])).toEqual([
+      ["a1", "also sohlberg"],
+      ["a2", "also Painting"],
+      ["a3", "also from norway"],
+      ["a4", "same era"],
+    ]);
+  });
+
+  it("excludes the current work and any junk works", () => {
+    const list = [
+      current,
+      art({ id: "dup", artist: "Munch" }),
+      art({ id: "junk", title: "string", artist: "Munch" }),
+      art({ id: "noimg", artist: "Munch", image: { url: "not-a-url" } }),
+    ];
+    const ids = relatedArtworks(current, list).map((r) => r.work.id);
+    expect(ids).toEqual(["dup"]);
+  });
+
+  it("orders the nearest-year tier by distance and degrades the reason without a year", () => {
+    const lone = art({
+      id: "c",
+      artist: "Solo",
+      medium: "unique",
+      location: "Nowhere",
+      year: 1900,
+    });
+    const list = [
+      lone,
+      art({ id: "far", artist: "A", medium: "m", location: "L", year: 1850 }),
+      art({ id: "near", artist: "B", medium: "n", location: "M", year: 1905 }),
+      art({ id: "undated", artist: "C", medium: "o", location: "N", year: null }),
+    ];
+    const related = relatedArtworks(lone, list);
+    expect(related.map((r) => r.work.id)).toEqual(["near", "far", "undated"]);
+    expect(related.find((r) => r.work.id === "undated").reason).toBe("also in the archive");
+  });
+
+  it("returns [] with no candidates or no current", () => {
+    expect(relatedArtworks(current, [current])).toEqual([]);
+    expect(relatedArtworks(null, [art({ id: "x" })])).toEqual([]);
+    expect(relatedArtworks(current, [])).toEqual([]);
+  });
+});
+
+describe("neighbours", () => {
+  const list = [art({ id: "1" }), art({ id: "2" }), art({ id: "3" })];
+
+  it("returns the works either side of the current one", () => {
+    const { prev, next } = neighbours(list[1], list);
+    expect([prev?.id, next?.id]).toEqual(["1", "3"]);
+  });
+
+  it("returns null past the ends of the list", () => {
+    expect(neighbours(list[0], list).prev).toBeNull();
+    expect(neighbours(list[2], list).next).toBeNull();
+  });
+
+  it("returns both null when the current work is not in the list", () => {
+    expect(neighbours(art({ id: "x" }), list)).toEqual({ prev: null, next: null });
+    expect(neighbours(art({ id: "1" }), [])).toEqual({ prev: null, next: null });
+  });
+});
+
+describe("cropSet", () => {
+  const CAPTIONS = ["detail — upper centre", "detail — lower left", "detail — right edge"];
+
+  it("reads orientation from the image ratio", () => {
+    expect(cropSet(2).orientation).toBe("landscape");
+    expect(cropSet(0.5).orientation).toBe("portrait");
+    expect(cropSet(1).orientation).toBe("square");
+  });
+
+  it("returns three positional windows with in-range origins", () => {
+    for (const ratio of [2, 0.5, 1]) {
+      const { windows } = cropSet(ratio);
+      expect(windows).toHaveLength(3);
+      expect(windows.map((w) => w.caption)).toEqual(CAPTIONS);
+      for (const w of windows) {
+        expect(w.originX).toBeGreaterThanOrEqual(0);
+        expect(w.originX).toBeLessThanOrEqual(100);
+        expect(w.originY).toBeGreaterThanOrEqual(0);
+        expect(w.originY).toBeLessThanOrEqual(100);
+        expect(typeof w.w).toBe("number");
+        expect(w.aspectRatio).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("shapes the windows to the orientation", () => {
+    expect(cropSet(2).windows.some((w) => w.aspectRatio > 1)).toBe(true);
+    expect(cropSet(0.5).windows[0].aspectRatio).toBeLessThan(1);
+  });
+
+  it("defaults to square for missing or junk ratios", () => {
+    expect(cropSet(0).orientation).toBe("square");
+    expect(cropSet(NaN).orientation).toBe("square");
+    expect(cropSet().orientation).toBe("square");
+  });
+});
+
+describe("introSegments", () => {
+  const text = (work) =>
+    introSegments(work)
+      .map((s) => s.text)
+      .join("");
+  const emPart = (work) => introSegments(work).find((s) => s.em)?.text ?? null;
+
+  it("templates a full sentence and emphasises the artist", () => {
+    const work = art({
+      medium: "painting",
+      artist: "Harald Sohlberg",
+      year: 1914,
+      location: "Norway",
+    });
+    expect(text(work)).toBe(
+      "A painting by Harald Sohlberg, 1914 — kept in Norway, part of the living archive."
+    );
+    expect(emPart(work)).toBe("Harald Sohlberg");
+  });
+
+  it("drops empty fields cleanly", () => {
+    expect(text(art({ medium: "", artist: "Munch", year: 1893, location: "" }))).toBe(
+      "A work by Munch, 1893 — part of the living archive."
+    );
+    expect(text(art({ medium: "print", artist: "", year: "", location: "Oslo" }))).toBe(
+      "A print — kept in Oslo, part of the living archive."
+    );
+    expect(emPart(art({ artist: "" }))).toBeNull();
+  });
+
+  it("ignores a junk year", () => {
+    expect(text(art({ medium: "painting", artist: "X", year: "n/a", location: "" }))).toBe(
+      "A painting by X — part of the living archive."
+    );
+  });
+});
+
+describe("splitParagraphs", () => {
+  it("splits on blank lines and trims", () => {
+    expect(splitParagraphs("one\n\ntwo\n\n\nthree")).toEqual(["one", "two", "three"]);
+  });
+
+  it("treats unbroken text as a single paragraph", () => {
+    expect(splitParagraphs("a single blob of prose")).toEqual(["a single blob of prose"]);
+  });
+
+  it("returns [] for empty or nullish input", () => {
+    expect(splitParagraphs("")).toEqual([]);
+    expect(splitParagraphs("   \n  ")).toEqual([]);
+    expect(splitParagraphs(null)).toEqual([]);
+  });
+});
+
+describe("isShortDescription", () => {
+  it("is short under the threshold and long over it", () => {
+    expect(isShortDescription("Freedom")).toBe(true);
+    expect(isShortDescription("x".repeat(401))).toBe(false);
+  });
+
+  it("treats empty as short and respects a custom threshold", () => {
+    expect(isShortDescription("")).toBe(true);
+    expect(isShortDescription("abcde", 5)).toBe(false);
+    expect(isShortDescription("abcd", 5)).toBe(true);
   });
 });

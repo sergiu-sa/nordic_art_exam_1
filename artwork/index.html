@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- title + description are rewritten per work by js/pages/artwork.js -->
     <title>Artwork · Nordic Art Archive</title>
     <meta
       name="description"
-      content="View an artwork in the Nordic Art Archive — its title, artist, year, medium, and description."
+      content="View an artwork in the Nordic Art Archive — its title, artist, year, medium, description, and image, with related works from the archive."
     />
     <link rel="canonical" href="https://nordicartarchive.netlify.app/artwork/" />
 
@@ -17,7 +18,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon-180.png" />
     <meta name="theme-color" content="#E63312" />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Nordic Art Archive" />
     <meta property="og:title" content="Artwork · Nordic Art Archive" />
     <meta
@@ -33,35 +34,380 @@
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Archivo:wght@400;500;600&display=swap"
     />
 
-    <!-- styles — cascade order: tokens → base → components → page -->
+    <!-- styles: tokens → base → layout → components → page -->
     <link rel="stylesheet" href="../css/tokens.css" />
     <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/layout/grid.css" />
     <link rel="stylesheet" href="../css/components/skip.css" />
     <link rel="stylesheet" href="../css/components/breadcrumbs.css" />
+    <link rel="stylesheet" href="../css/components/nav.css" />
+    <link rel="stylesheet" href="../css/components/footer.css" />
+    <link rel="stylesheet" href="../css/components/section.css" />
+    <link rel="stylesheet" href="../css/components/card.css" />
+    <link rel="stylesheet" href="../css/components/tag.css" />
+    <link rel="stylesheet" href="../css/components/button.css" />
+    <link rel="stylesheet" href="../css/components/feedback.css" />
+    <link rel="stylesheet" href="../css/pages/artwork.css" />
   </head>
-  <body>
+
+  <!-- is-loading is the default ground so the work scaffold can't flash before artwork.js takes over; the page module swaps it for is-ready / is-notfound / is-error once the fetch resolves -->
+  <body id="top" class="is-loading">
     <a class="skip" href="#main">Skip to content</a>
 
-    <header>
-      <nav aria-label="Primary">
-        <a href="../index.html">Nordic Art Archive</a>
-      </nav>
+    <!-- icon sprite — Heroicons outline 24px (MIT) · https://heroicons.com -->
+    <svg style="display: none" aria-hidden="true">
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+      </symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <path d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 18 18 6M6 6l12 12" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 4.5v15m7.5-7.5h-15" />
+      </symbol>
+    </svg>
+
+    <!-- the ink — stain filter def for the title's hover twin.
+     a3 is the display-size set (~65–124px; the entry title is ~44–92px display).
+     CANONICAL SOURCE is index.html — copied here like the icon sprite; never retuned in place. -->
+    <svg style="display: none" aria-hidden="true">
+      <defs>
+        <filter id="a3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.015 0.055"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="16"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.7" result="g" />
+          <feGaussianBlur in="g" stdDeviation="4.5 1.9" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="9 4" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- ============ masthead ============ -->
+    <header class="site-head">
+      <div class="utility">
+        <span>a living archive of nordic art — est. 2026</span>
+        <span class="auth">
+          <span class="auth-out"
+            ><a href="../account/login.html">log in</a
+            ><a href="../account/register.html">register</a></span
+          >
+          <span class="auth-in"
+            ><a href="../profile.html">my works</a
+            ><button class="logout" type="button">log out</button></span
+          >
+        </span>
+      </div>
+      <div class="mainrow">
+        <span class="lead"
+          ><a href="../index.html"
+            ><svg class="i" aria-hidden="true"><use href="#i-arrow-left" /></svg> the archive</a
+          ></span
+        >
+        <a class="wordmark" href="../index.html"
+          ><img class="naa" src="../assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></a
+        >
+        <span class="headtools">
+          <!-- the owner's primary action — only when authed -->
+          <a class="tickbtn menu-btn add-btn auth-in" href="create.html" aria-label="add artwork">
+            <svg class="i" aria-hidden="true"><use href="#i-plus" /></svg>
+            <span class="lbl">add artwork</span>
+          </a>
+          <a
+            class="tickbtn menu-btn icon-btn"
+            href="../collection.html#search"
+            aria-label="search the archive"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-search" /></svg>
+          </a>
+          <button
+            class="tickbtn menu-btn"
+            id="menu-open"
+            type="button"
+            aria-expanded="false"
+            aria-controls="curtain"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-menu" /></svg>
+            menu
+          </button>
+        </span>
+      </div>
     </header>
 
-    <nav class="crumbs" aria-label="Breadcrumb">
-      <ol>
-        <li><a href="../index.html">the archive</a></li>
-        <li><span aria-current="page">artwork</span></li>
-      </ol>
-    </nav>
+    <!-- ============ menu curtain ============ -->
+    <div class="curtain" id="curtain" aria-hidden="true">
+      <div class="curtain-top">
+        <span class="wordmark"
+          ><img class="naa" src="../assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></span
+        >
+        <button class="tickbtn menu-btn" id="menu-close" type="button">
+          close
+          <svg class="i" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <nav aria-label="site menu">
+        <a href="../index.html"
+          ><span class="num">01</span><span class="word">the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="../collection.html"
+          ><span class="num">02</span><span class="word">all artworks</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="../hands.html"
+          ><span class="num">03</span><span class="word">the hands of the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="../account/login.html"
+          ><span class="num">04</span><span class="word">log in</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-in" href="../profile.html"
+          ><span class="num">04</span><span class="word">my works</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="../account/login.html?from=create"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+          ><span class="tag tag--dark">owners</span></a
+        >
+        <a class="auth-in" href="create.html"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+      </nav>
+      <div class="curtain-mark" aria-hidden="true">nordic <em>art archive</em></div>
+    </div>
 
     <main id="main">
-      <h1>Artwork</h1>
-      <p>The artwork detail view lands here. The archive is being built.</p>
+      <!-- the page's heading — JS sets it to the work title (or "Artwork not found"); it is the accessible heading in every state, so heading order stays valid while the work loads. The visible giant title in the entry is aria-hidden display type. -->
+      <h1 class="vh" id="art-h1">Artwork</h1>
+
+      <!-- build: crumbs rebuilt per state by artwork.js (the archive / medium / title) -->
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <ol id="crumbs">
+          <li><a href="../index.html">the archive</a></li>
+          <li><span aria-current="page">artwork</span></li>
+        </ol>
+      </nav>
+
+      <!-- ============ page states — loading / not found / error ============ -->
+      <section class="wallstate">
+        <!-- the empty frame is decorative; the copy below carries the state -->
+        <div class="statewall" aria-hidden="true">
+          <figure class="frame empty">
+            <div class="emptyface skeleton"></div>
+          </figure>
+        </div>
+        <div class="statecopy">
+          <!-- a persistent live region so the loading line announces reliably (a dynamically-injected aria-live region can miss the first message) -->
+          <p class="status" id="detail-status" role="status" aria-live="polite"></p>
+          <!-- artwork.js renders the not-found / error copy here -->
+          <div id="detail-state"></div>
+        </div>
+      </section>
+
+      <!-- ============ white entry — the wall label ============ -->
+      <section class="entry work">
+        <p class="label" id="entry-label"></p>
+        <div class="htitle">
+          <p class="art-title" id="art-title" aria-hidden="true"></p>
+          <span class="h1ink" id="art-title-ink" aria-hidden="true"></span>
+        </div>
+        <p class="intro" id="intro"></p>
+        <div class="tagrow" id="tagrow"></div>
+      </section>
+
+      <!-- ============ the wall — one ink band behind the work ============ -->
+      <section class="wall work" id="wall">
+        <figure class="frame r" id="art-frame">
+          <img id="art-image" alt="" />
+          <!-- shown only when the image URL is dead/non-http (body.is-noimage); not aria-hidden, so when it replaces the image it's announced -->
+          <div class="noimg" id="art-noimg">image unavailable</div>
+        </figure>
+        <a class="fullsize" id="fullsize" target="_blank" rel="noopener"
+          >view full size<span class="vh"> (opens in new tab)</span>
+          <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+        ></a>
+      </section>
+
+      <!-- ============ in detail — fixed close-ups of the one API image ============ -->
+      <section class="indetail work" id="indetail">
+        <div class="dkick">in detail</div>
+        <div class="crops" id="crops"></div>
+      </section>
+
+      <!-- ============ the story — white editorial spread ============ -->
+      <section class="work">
+        <div class="section-head">
+          <div>
+            <div class="kicker">01 — the story</div>
+            <h2 class="title">about this work</h2>
+          </div>
+        </div>
+        <div class="story">
+          <div>
+            <div class="reading" id="reading"></div>
+            <!-- build: owner attribution from owner.name — no provenance fields exist -->
+            <p class="credit" id="credit"></p>
+          </div>
+          <aside class="facts">
+            <div class="fkicker">at a glance</div>
+            <dl id="facts-dl"></dl>
+            <!-- owner tools: .auth-in is hidden until issue #28 (Login page and session handling ) flips body.authed + adds the  owner-name ownership check; artwork.js only sets the edit href here -->
+            <div class="owner auth-in" id="owner-tools">
+              <div class="fkicker">owner tools</div>
+              <div class="tools">
+                <a class="tickbtn" id="edit-link" href="edit.html">edit</a>
+                <button class="tickbtn warn" type="button" id="delete-btn">delete</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ connections ============
+       The constellation; the section tints to ink while the visitor is inside it.
+       Hidden by artwork.js when there are no related works.  -->
+      <section id="connzone" class="work">
+        <div class="section-head" id="connections">
+          <div>
+            <div class="kicker">02 — connections</div>
+            <h2 class="title">works in conversation</h2>
+          </div>
+          <a class="arrow" href="../index.html"
+            >back to the feed <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+          ></a>
+        </div>
+        <div class="constellation r" id="constellation">
+          <!-- threads are drawn by artwork.js, anchored to the frames; nodes appended after -->
+          <svg class="lines" id="constellation-lines" aria-hidden="true"></svg>
+        </div>
+      </section>
+
+      <!-- ============ back in daylight — more from the archive ============ -->
+      <section class="work" id="more-section">
+        <div class="section-head">
+          <div>
+            <div class="kicker">03 — keep walking</div>
+            <h2 class="title">more from the archive</h2>
+          </div>
+          <a class="arrow" href="../collection.html"
+            >see all <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+          ></a>
+        </div>
+
+        <div class="chaos" id="more-grid"></div>
+
+        <div class="walkon r">
+          <a href="../index.html"
+            >wander back into the archive
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+          ></a>
+        </div>
+
+        <!-- build: prev/next from the fetched list order around the current id -->
+        <nav class="pn" id="prevnext" aria-label="artwork navigation"></nav>
+      </section>
     </main>
 
-    <footer>
-      <p>Nordic Art Archive</p>
+    <footer class="fC">
+      <div class="fhead">
+        <div class="fin">fin — the exit</div>
+      </div>
+      <div class="fmid">
+        <nav class="fcols" aria-label="footer">
+          <div class="fcol">
+            <div class="fkick">01 — wander</div>
+            <a href="../collection.html"
+              >all artworks <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="../collection.html"
+              >by medium <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="../hands.html"
+              >the hands of the archive
+              <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+            ></a>
+          </div>
+          <div class="fcol">
+            <div class="fkick">02 — account</div>
+            <span class="auth-out">
+              <a href="../account/login.html"
+                >log in <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="../account/register.html"
+                >register <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="../account/login.html?from=create"
+                >add artwork <span class="tag tag--dark">owners</span></a
+              >
+            </span>
+            <span class="auth-in">
+              <a href="../profile.html"
+                >my works <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="create.html"
+                >add artwork <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+              ></a>
+              <button class="logout" type="button">log out</button>
+            </span>
+          </div>
+        </nav>
+        <img class="stamp" src="../assets/img/naa-stamp-sun-on-ink.svg" alt="" />
+      </div>
+      <div class="legal">© 2026 Nordic Art Archive — a fictional archive built for Noroff EP1</div>
     </footer>
+
+    <noscript>
+      <p class="noscript-note">
+        The Nordic Art Archive loads each artwork with JavaScript. Please enable it to view this
+        work.
+      </p>
+    </noscript>
+
+    <script type="module" src="../js/pages/artwork.js"></script>
   </body>
 </html>

@@ -67,6 +67,8 @@
 .ebtn {
   display: inline-flex;
   align-items: center;
+  /* min 44px tall so the retry/empty action clears the project's tap-target bar */
+  min-height: 44px;
   gap: 8px;
   margin-top: 28px;
   padding: 11px 26px;
