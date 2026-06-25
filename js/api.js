@@ -101,3 +101,33 @@ export async function deleteArtwork(id) {
   await request(`/artworks/${id}`, { method: "DELETE", auth: true });
   return null;
 }
+
+// ---- auth endpoints ----
+// register returns no token;
+// login returns data.accessToken;
+// create-api-key needs ONLY th bearer token (no X-Noroff-API-Key yet), so the token is passed in and set via the headers merge — authHeaders() (both-headers) is left untouched and login can stay atomic.
+
+export async function authRegister({ name, email, password }) {
+  const result = await request("/auth/register", {
+    method: "POST",
+    body: { name, email, password },
+  });
+  return result?.data ?? null;
+}
+
+export async function authLogin({ email, password }) {
+  const result = await request("/auth/login", {
+    method: "POST",
+    body: { email, password },
+  });
+  return result?.data ?? null;
+}
+
+export async function authCreateApiKey(token, { name } = {}) {
+  const result = await request("/auth/create-api-key", {
+    method: "POST",
+    body: name ? { name } : undefined,
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return result?.data ?? null;
+}

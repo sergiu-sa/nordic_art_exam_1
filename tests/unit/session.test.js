@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getToken, getApiKey, setSession, clearSession } from "../../js/session.js";
+import { getToken, getApiKey, getUserName, setSession, clearSession } from "../../js/session.js";
 
 // node lacks sessionStorage — back it with an in-memory fake.
 function createStorage() {
@@ -43,5 +43,28 @@ describe("session", () => {
     clearSession();
     expect(getToken()).toBeNull();
     expect(getApiKey()).toBeNull();
+  });
+});
+
+describe("session — identity", () => {
+  it("returns null for an unset name", () => {
+    expect(getUserName()).toBeNull();
+  });
+
+  it("round-trips the name alongside the credentials", () => {
+    setSession({ accessToken: "tok-123", apiKey: "key-abc", name: "vera_holt" });
+    expect(getUserName()).toBe("vera_holt");
+  });
+
+  it("preserves the name when a later write omits it", () => {
+    setSession({ accessToken: "tok-123", apiKey: "key-abc", name: "vera_holt" });
+    setSession({ accessToken: "tok-456" });
+    expect(getUserName()).toBe("vera_holt");
+  });
+
+  it("clearSession removes the name too", () => {
+    setSession({ accessToken: "tok-123", apiKey: "key-abc", name: "vera_holt" });
+    clearSession();
+    expect(getUserName()).toBeNull();
   });
 });

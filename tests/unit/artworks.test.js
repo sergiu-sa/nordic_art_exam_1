@@ -19,6 +19,7 @@ import {
   introSegments,
   splitParagraphs,
   isShortDescription,
+  isOwnArtwork,
 } from "../../js/artworks.js";
 
 // A minimal usable artwork; override fields per case.
@@ -410,5 +411,29 @@ describe("isShortDescription", () => {
     expect(isShortDescription("")).toBe(true);
     expect(isShortDescription("abcde", 5)).toBe(false);
     expect(isShortDescription("abcd", 5)).toBe(true);
+  });
+});
+
+describe("isOwnArtwork", () => {
+  it("is true when the user name matches the owner", () => {
+    expect(isOwnArtwork({ owner: { name: "vera_holt" } }, "vera_holt")).toBe(true);
+  });
+
+  it("is false for a different user", () => {
+    expect(isOwnArtwork({ owner: { name: "vera_holt" } }, "lars_b")).toBe(false);
+  });
+
+  it("is false when there is no user name", () => {
+    expect(isOwnArtwork({ owner: { name: "vera_holt" } }, null)).toBe(false);
+    expect(isOwnArtwork({ owner: { name: "vera_holt" } }, "")).toBe(false);
+  });
+
+  it("is false when the work has no owner", () => {
+    expect(isOwnArtwork({}, "vera_holt")).toBe(false);
+    expect(isOwnArtwork({ owner: {} }, "vera_holt")).toBe(false);
+  });
+
+  it("ignores surrounding whitespace on the owner name", () => {
+    expect(isOwnArtwork({ owner: { name: " vera_holt " } }, "vera_holt")).toBe(true);
   });
 });

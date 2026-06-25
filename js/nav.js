@@ -1,11 +1,14 @@
 // Shared chrome behaviour, reused by every page that renders the masthead + curtain: the menu's open/close with focus management, and the masthead's condense-on-scroll.
 // Presentation lives in css/components/nav.css.
 
+import { isLoggedIn, logout } from "./auth.js";
+
 const OPEN_CLASS = "open";
 
 export function initNav(doc = document) {
   initCurtain(doc);
   initScrolled(doc);
+  initAuthState(doc);
 }
 
 function initCurtain(doc) {
@@ -67,4 +70,26 @@ function initScrolled(doc) {
   }
   window.addEventListener("scroll", update, { passive: true });
   update();
+}
+
+// reflect the session in the chrome: body.authed swaps the owner nav in (add-artwork /my-works / log out) across the masthead, curtain, and footer.
+// Logout flips it back in place — feed/detail simply return to the logged-out chrome
+function initAuthState(doc) {
+  applyAuthClass(doc);
+  for (const btn of doc.querySelectorAll(".logout")) {
+    btn.addEventListener("click", () => {
+      logout();
+      applyAuthClass(doc);
+      // applyAuthClass hides the .auth-in subtree (display:none via body.authed), which would drop focus to document.body — a keyboard/switch user loses their place.
+      // Move focus to the first focusable element inside the .auth-out partner that just became visible in the same region as the clicked button.
+      const region = btn.closest(".auth, .fcol");
+      const successor =
+        region?.querySelector(".auth-out a, .auth-out button") ?? doc.getElementById("menu-open");
+      successor?.focus();
+    });
+  }
+}
+
+function applyAuthClass(doc) {
+  doc.body.classList.toggle("authed", isLoggedIn());
 }
