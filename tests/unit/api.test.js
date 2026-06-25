@@ -14,6 +14,9 @@ import {
   createArtwork,
   updateArtwork,
   deleteArtwork,
+  authRegister,
+  authLogin,
+  authCreateApiKey,
 } from "../../js/api.js";
 
 const BASE = "https://v2.api.noroff.dev";
@@ -230,5 +233,56 @@ describe("artwork wrappers", () => {
     expect(url).toBe(`${BASE}/artworks/9`);
     expect(options.method).toBe("DELETE");
     expect(result).toBeNull();
+  });
+});
+
+describe("auth wrappers", () => {
+  it("authRegister POSTs name/email/password with no auth headers and returns data", async () => {
+    fetch.mockResolvedValue(
+      fakeResponse({ data: { name: "vera_holt", email: "vera@stud.noroff.no" } }, { status: 201 })
+    );
+
+    const result = await authRegister({
+      name: "vera_holt",
+      email: "vera@stud.noroff.no",
+      password: "alpenglow",
+    });
+
+    const [url, options] = fetch.mock.calls.at(-1);
+    expect(url).toBe(`${BASE}/auth/register`);
+    expect(options.method).toBe("POST");
+    expect(options.headers.Authorization).toBeUndefined();
+    expect(options.headers["X-Noroff-API-Key"]).toBeUndefined();
+    expect(JSON.parse(options.body)).toEqual({
+      name: "vera_holt",
+      email: "vera@stud.noroff.no",
+      password: "alpenglow",
+    });
+    expect(result).toEqual({ name: "vera_holt", email: "vera@stud.noroff.no" });
+  });
+
+  it("authLogin POSTs the credentials and returns the profile with the token", async () => {
+    fetch.mockResolvedValue(fakeResponse({ data: { name: "vera_holt", accessToken: "tok-123" } }));
+
+    const result = await authLogin({ email: "vera@stud.noroff.no", password: "alpenglow" });
+
+    const [url, options] = fetch.mock.calls.at(-1);
+    expect(url).toBe(`${BASE}/auth/login`);
+    expect(options.method).toBe("POST");
+    expect(options.headers.Authorization).toBeUndefined();
+    expect(result).toEqual({ name: "vera_holt", accessToken: "tok-123" });
+  });
+
+  it("authCreateApiKey sends only the Bearer token (no API key) and returns the key", async () => {
+    fetch.mockResolvedValue(fakeResponse({ data: { name: "nordic-art-archive", key: "key-abc" } }));
+
+    const result = await authCreateApiKey("tok-123", { name: "nordic-art-archive" });
+
+    const [url, options] = fetch.mock.calls.at(-1);
+    expect(url).toBe(`${BASE}/auth/create-api-key`);
+    expect(options.method).toBe("POST");
+    expect(options.headers.Authorization).toBe("Bearer tok-123");
+    expect(options.headers["X-Noroff-API-Key"]).toBeUndefined();
+    expect(result).toEqual({ name: "nordic-art-archive", key: "key-abc" });
   });
 });
