@@ -290,3 +290,11 @@ const SHORT_DESCRIPTION_MAX = 400;
 export function isShortDescription(text, threshold = SHORT_DESCRIPTION_MAX) {
   return String(text ?? "").trim().length < threshold;
 }
+
+// ownership is stricter than the body.authed nav gate
+// the edit/delete tools show only when the signed-in user's name matches the work's owner.
+// Owner name is embedded in GET /artworks(/:id).
+export function isOwnArtwork(work, userName) {
+  const owner = String(work?.owner?.name ?? "").trim();
+  return Boolean(userName) && owner === userName;
+}

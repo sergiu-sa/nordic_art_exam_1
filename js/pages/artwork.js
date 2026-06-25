@@ -17,7 +17,10 @@ import {
   introSegments,
   splitParagraphs,
   isShortDescription,
+  isOwnArtwork,
 } from "../artworks.js";
+import { isLoggedIn } from "../auth.js";
+import { getUserName } from "../session.js";
 
 const LIST_LIMIT = 100; // the shared pool is a single page; one fetch covers related + neighbours + more
 const FETCH_TIMEOUT_MS = 15000;
@@ -63,6 +66,7 @@ const els = {
   reading: document.getElementById("reading"),
   credit: document.getElementById("credit"),
   facts: document.getElementById("facts-dl"),
+  ownerTools: document.getElementById("owner-tools"),
   editLink: document.getElementById("edit-link"),
   connzone: document.getElementById("connzone"),
   constellation: document.getElementById("constellation"),
@@ -223,8 +227,19 @@ function renderWork(work) {
   renderEntry(work);
   renderWall(work);
   renderStory(work);
-  if (els.editLink && work.id) els.editLink.href = `edit.html?id=${encodeURIComponent(work.id)}`;
+  setOwnerTools(work);
   observeBand();
+}
+
+// owner tools (edit + delete) show only to the owner — stricter than the body.authed nav gate.
+// Set before the page flips to is-ready, so a logged-in non-owner never sees them.
+// The delete handler arrives with owner-actions; here the tools just become visible + the edit link points at this work.
+function setOwnerTools(work) {
+  const isOwner = isLoggedIn() && isOwnArtwork(work, getUserName());
+  if (els.ownerTools) els.ownerTools.style.display = isOwner ? "" : "none";
+  if (isOwner && els.editLink && work.id) {
+    els.editLink.href = `edit.html?id=${encodeURIComponent(work.id)}`;
+  }
 }
 
 function renderEntry(work) {
