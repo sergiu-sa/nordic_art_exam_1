@@ -6,6 +6,7 @@ import {
   artworkAlt,
   mediumHref,
   secureImageUrl,
+  sortByCreatedDesc,
   pickHero,
   splitSections,
   topMediums,
@@ -99,6 +100,47 @@ describe("secureImageUrl", () => {
   it("returns an empty string for nullish input", () => {
     expect(secureImageUrl(null)).toBe("");
     expect(secureImageUrl(undefined)).toBe("");
+  });
+});
+
+describe("sortByCreatedDesc", () => {
+  it("orders works newest-first by created", () => {
+    const oldWork = art({ title: "old", created: "2026-03-30T09:58:23.710Z" });
+    const newWork = art({ title: "new", created: "2026-04-05T12:53:45.191Z" });
+    const midWork = art({ title: "mid", created: "2026-04-01T09:58:03.044Z" });
+    expect(sortByCreatedDesc([oldWork, newWork, midWork]).map((w) => w.title)).toEqual([
+      "new",
+      "mid",
+      "old",
+    ]);
+  });
+
+  it("sorts works with an invalid or missing created last", () => {
+    const dated = art({ title: "dated", created: "2026-04-05T12:53:45.191Z" });
+    const junk = art({ title: "junk", created: "not-a-date" });
+    const missing = art({ title: "missing" }); // no created field
+    const result = sortByCreatedDesc([junk, missing, dated]);
+    expect(result[0].title).toBe("dated");
+    expect(result.slice(1).map((w) => w.title)).toEqual(["junk", "missing"]); // input order kept
+  });
+
+  it("is stable for equal or both-junk created values (keeps input order)", () => {
+    const a = art({ title: "A", created: "2026-04-05T00:00:00.000Z" });
+    const b = art({ title: "B", created: "2026-04-05T00:00:00.000Z" });
+    const j1 = art({ title: "J1", created: "" });
+    const j2 = art({ title: "J2", created: "" });
+    expect(sortByCreatedDesc([a, b, j1, j2]).map((w) => w.title)).toEqual(["A", "B", "J1", "J2"]);
+  });
+
+  it("returns [] for no input and does not mutate the source", () => {
+    expect(sortByCreatedDesc()).toEqual([]);
+    const src = [
+      art({ title: "x", created: "2026-01-01T00:00:00.000Z" }),
+      art({ title: "y", created: "2026-02-01T00:00:00.000Z" }),
+    ];
+    const snapshot = [...src];
+    sortByCreatedDesc(src);
+    expect(src).toEqual(snapshot); // original array order unchanged
   });
 });
 

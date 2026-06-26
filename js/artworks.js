@@ -35,6 +35,18 @@ export function secureImageUrl(url) {
   return String(url ?? "").replace(/^http:\/\//i, "https://");
 }
 
+// The API's default order isn't by date and its server-side sort is currently unavailable,so the feed orders newest-first here. created is parsed to a timestamp;
+// an invalid or missing date sorts last, and ties keep input order (stable). The input is not mutated.
+export function sortByCreatedDesc(list = []) {
+  return list
+    .map((work, index) => {
+      const time = Date.parse(work?.created);
+      return { work, index, time: Number.isNaN(time) ? -Infinity : time };
+    })
+    .sort((a, b) => (a.time === b.time ? a.index - b.index : b.time - a.time))
+    .map((entry) => entry.work);
+}
+
 // The hero is the page's thesis, so feature the best-catalogued work, not just the newest — the shared pool is full of junk (one-word titles, lorem walls).
 // A higher score = more likely a real, presentable work.
 function heroScore(work) {

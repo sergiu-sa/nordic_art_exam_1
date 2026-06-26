@@ -4,6 +4,9 @@ import { getToken, getApiKey } from "./session.js";
 
 const API_BASE = "https://v2.api.noroff.dev";
 
+const ALL_ARTWORKS_DEFAULT_PAGE_SIZE = 12;
+const ALL_ARTWORKS_MAX_PAGES = 10; // runaway guard, used only until a page succeeds and pageCount is known
+
 export class ApiError extends Error {
   constructor(message, { status = 0, isNetwork = false, isAbort = false, details } = {}) {
     super(message);
@@ -80,6 +83,61 @@ export async function getArtworks({ page, limit, sort, sortOrder, signal } = {})
   const query = params.toString();
   const result = await request(`/artworks${query ? `?${query}` : ""}`, { signal });
   return { data: result?.data ?? [], meta: result?.meta ?? {} };
+}
+
+// The live API's server-side sort and large limits 500, and one poisoned record can crash any page window that includes it.
+// So walk the pool in small unsorted pages, retry-then-skip a failing page, dedupe by id, and stop at the last page.
+// Sorting is the caller's job (the server can't).
+// Throws only when no page succeeds, so the feed can show its error state (not the empty state).
+// Composing getArtworks keeps endpoint knowledge in one place; the collection page reuses it.
+export async function getAllArtworks({ pageSize = ALL_ARTWORKS_DEFAULT_PAGE_SIZE, signal } = {}) {
+  const seen = new Set();
+  const data = [];
+  let firstGoodMeta = null;
+  let lastPage = null;
+  let succeeded = 0;
+  let lastFailure = null;
+
+  for (let page = 1; page <= (lastPage ?? ALL_ARTWORKS_MAX_PAGES); page += 1) {
+    let result;
+    try {
+      result = await fetchPageWithRetry({ page, limit: pageSize, signal });
+    } catch (error) {
+      if (error?.isAbort) throw error; // an abort/timeout ends the whole walk at once
+      lastFailure = error; // a poisoned page: remember it, skip, keep walking
+      continue;
+    }
+
+    succeeded += 1;
+    if (!firstGoodMeta) firstGoodMeta = result.meta;
+    if (result.meta?.pageCount) lastPage = result.meta.pageCount;
+
+    for (const work of result.data) {
+      const id = work?.id;
+      if (id && seen.has(id)) continue;
+      if (id) seen.add(id);
+      data.push(work);
+    }
+
+    if (result.meta?.isLastPage) break;
+    if (!result.data.length) break; // an empty page means we walked past the end
+  }
+
+  if (succeeded === 0) {
+    throw lastFailure ?? new ApiError("The archive is unavailable right now.", { status: 503 });
+  }
+  return { data, meta: firstGoodMeta ?? {} };
+}
+
+// One immediate retry absorbs a transient blip; a deterministic 500 fails the retry too and bubbles up to be skipped.
+// An abort is never retried.
+async function fetchPageWithRetry({ page, limit, signal }) {
+  try {
+    return await getArtworks({ page, limit, signal });
+  } catch (error) {
+    if (error?.isAbort) throw error;
+    return await getArtworks({ page, limit, signal });
+  }
 }
 
 export async function getArtwork(id, { signal } = {}) {
