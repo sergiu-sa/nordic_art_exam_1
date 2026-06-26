@@ -2,7 +2,7 @@
 // One fetch drives the four states (loading / ready / empty / error); the pure shaping lives in artworks.js, the state visuals in ui.js, the chrome behaviour in nav.js.
 
 import { initNav } from "../nav.js";
-import { getArtworks } from "../api.js";
+import { getAllArtworks } from "../api.js";
 import {
   errorToMessage,
   renderSkeletonGrid,
@@ -13,6 +13,7 @@ import {
 } from "../ui.js";
 import { formatYear } from "../format.js";
 import {
+  sortByCreatedDesc,
   usableArtworks,
   splitSections,
   topMediums,
@@ -25,8 +26,8 @@ import {
   DARK_PATTERN,
 } from "../artworks.js";
 
-// The pool is a single page (see the API probe); fetch it whole so the medium list and the register count the real archive, then display the lead + grids.
-const FEED_LIMIT = 100;
+// The API can't sort and 500s on large/poisoned windows, so fetch the pool in small unsorted pages and order it newest-first in the browser (see js/api.js getAllArtworks + js/artworks.js sortByCreatedDesc).
+const FEED_PAGE_SIZE = 12;
 const FETCH_TIMEOUT_MS = 15000; // a hung request falls to the error state
 const STATES = ["is-loading", "is-ready", "is-empty", "is-error"];
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -61,13 +62,11 @@ async function load() {
   }, FETCH_TIMEOUT_MS);
   showLoading();
   try {
-    const { data, meta } = await getArtworks({
-      sort: "created",
-      sortOrder: "desc",
-      limit: FEED_LIMIT,
+    const { data, meta } = await getAllArtworks({
+      pageSize: FEED_PAGE_SIZE,
       signal: request.signal,
     });
-    const usable = usableArtworks(data);
+    const usable = usableArtworks(sortByCreatedDesc(data));
     if (!usable.length) return showEmpty();
     renderPage(usable, meta);
     setState("ready");
