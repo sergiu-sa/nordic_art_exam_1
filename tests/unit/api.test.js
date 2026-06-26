@@ -17,6 +17,7 @@ import {
   authRegister,
   authLogin,
   authCreateApiKey,
+  getAllArtworks,
 } from "../../js/api.js";
 
 const BASE = "https://v2.api.noroff.dev";
@@ -284,5 +285,111 @@ describe("auth wrappers", () => {
     expect(options.headers.Authorization).toBe("Bearer tok-123");
     expect(options.headers["X-Noroff-API-Key"]).toBeUndefined();
     expect(result).toEqual({ name: "nordic-art-archive", key: "key-abc" });
+  });
+});
+
+describe("getAllArtworks — resilient paging", () => {
+  const ok = (data, meta) => fakeResponse({ data, meta });
+  const boom = () =>
+    fakeResponse({ errors: [{ message: "Internal Server Error" }] }, { status: 500 });
+
+  it("walks pages, accumulates, and stops at isLastPage", async () => {
+    fetch
+      .mockResolvedValueOnce(
+        ok([{ id: "1" }, { id: "2" }], { totalCount: 3, pageCount: 2, isLastPage: false })
+      )
+      .mockResolvedValueOnce(ok([{ id: "3" }], { totalCount: 3, pageCount: 2, isLastPage: true }));
+
+    const { data, meta } = await getAllArtworks({ pageSize: 2 });
+
+    expect(data.map((w) => w.id)).toEqual(["1", "2", "3"]);
+    expect(meta.totalCount).toBe(3);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE}/artworks?page=1&limit=2`); // no sort param
+  });
+
+  it("retries once then skips a poisoned middle page, accumulating the rest", async () => {
+    fetch
+      .mockResolvedValueOnce(ok([{ id: "1" }], { totalCount: 3, pageCount: 3, isLastPage: false }))
+      .mockResolvedValueOnce(boom()) // page 2 attempt
+      .mockResolvedValueOnce(boom()) // page 2 retry
+      .mockResolvedValueOnce(ok([{ id: "3" }], { totalCount: 3, pageCount: 3, isLastPage: true }));
+
+    const { data } = await getAllArtworks({ pageSize: 1 });
+
+    expect(data.map((w) => w.id)).toEqual(["1", "3"]);
+    expect(fetch).toHaveBeenCalledTimes(4);
+  });
+
+  it("recovers from a failed first page (meta arrives late)", async () => {
+    fetch
+      .mockResolvedValueOnce(boom()) // page 1 attempt
+      .mockResolvedValueOnce(boom()) // page 1 retry
+      .mockResolvedValueOnce(ok([{ id: "2" }], { totalCount: 3, pageCount: 2, isLastPage: true }));
+
+    const { data, meta } = await getAllArtworks({ pageSize: 2 });
+
+    expect(data.map((w) => w.id)).toEqual(["2"]);
+    expect(meta.totalCount).toBe(3); // captured from the first page that succeeded
+  });
+
+  it("counts a transient blip recovered by the retry as a success", async () => {
+    fetch
+      .mockResolvedValueOnce(boom()) // blip
+      .mockResolvedValueOnce(ok([{ id: "1" }], { totalCount: 1, pageCount: 1, isLastPage: true }));
+
+    const { data } = await getAllArtworks({ pageSize: 12 });
+
+    expect(data.map((w) => w.id)).toEqual(["1"]);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("dedupes works that overlap across pages", async () => {
+    fetch
+      .mockResolvedValueOnce(
+        ok([{ id: "1" }, { id: "2" }], { totalCount: 3, pageCount: 2, isLastPage: false })
+      )
+      .mockResolvedValueOnce(
+        ok([{ id: "2" }, { id: "3" }], { totalCount: 3, pageCount: 2, isLastPage: true })
+      );
+
+    const { data } = await getAllArtworks({ pageSize: 2 });
+
+    expect(data.map((w) => w.id)).toEqual(["1", "2", "3"]); // "2" appears once
+  });
+
+  it("throws (does not return []) when every page fails, preserving the 500", async () => {
+    fetch.mockResolvedValue(boom()); // every attempt 500s
+
+    await expect(getAllArtworks({ pageSize: 12 })).rejects.toMatchObject({
+      name: "ApiError",
+      status: 500,
+    });
+  });
+
+  it("preserves a network failure when every page fails", async () => {
+    fetch.mockRejectedValue(new TypeError("Failed to fetch"));
+
+    await expect(getAllArtworks({ pageSize: 12 })).rejects.toMatchObject({ isNetwork: true });
+  });
+
+  it("propagates an abort immediately, without retrying", async () => {
+    const abortError = Object.assign(new Error("aborted"), { name: "AbortError" });
+    fetch
+      .mockResolvedValueOnce(ok([{ id: "1" }], { totalCount: 5, pageCount: 3, isLastPage: false }))
+      .mockRejectedValueOnce(abortError); // page 2 aborts
+
+    await expect(getAllArtworks({ pageSize: 2 })).rejects.toMatchObject({ isAbort: true });
+    expect(fetch).toHaveBeenCalledTimes(2); // page 2 was NOT retried
+  });
+
+  it("returns an empty result on a 200 empty page (no throw, no MAX_PAGES grind)", async () => {
+    fetch.mockResolvedValueOnce(ok([], { totalCount: 0 })); // 200 but empty, no isLastPage/pageCount
+
+    const { data, meta } = await getAllArtworks({ pageSize: 12 });
+
+    expect(data).toEqual([]);
+    expect(meta.totalCount).toBe(0);
+    expect(fetch).toHaveBeenCalledTimes(1); // the empty-page break stops the walk — empty state, not error
   });
 });
