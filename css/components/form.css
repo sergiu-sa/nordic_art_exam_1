@@ -85,3 +85,24 @@
   outline: 2px solid var(--signal);
   outline-offset: 3px;
 }
+
+/* shared control base — every kit input sits in a .fbox focus-corner wrapper */
+.fbox input {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  padding: 12px 14px;
+  border: 1px solid rgba(14, 14, 14, 0.4);
+  border-radius: 0;
+  background: var(--paper);
+}
+
+.fbox input:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.fbox input[aria-invalid="true"] {
+  border-color: var(--signal-deep);
+}
