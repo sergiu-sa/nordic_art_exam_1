@@ -97,6 +97,11 @@ body.scrolled .mainrow {
   letter-spacing: 0.05em;
 }
 
+.mainrow .lead a:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 3px;
+}
+
 .wordmark {
   font-family: var(--serif);
   font-weight: 400;
@@ -106,6 +111,11 @@ body.scrolled .mainrow {
   line-height: 1;
   letter-spacing: 0.01em;
   transition: font-size 0.45s ease;
+}
+
+.wordmark:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 3px;
 }
 
 .wordmark em {
