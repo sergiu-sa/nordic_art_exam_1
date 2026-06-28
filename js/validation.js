@@ -54,6 +54,13 @@ export function validateRegistration({ name, email, password }) {
   };
 }
 
+export function validateLogin({ email, password }) {
+  return {
+    email: validateEmail(email),
+    password: validatePassword(password),
+  };
+}
+
 export function validateYear(value) {
   if (isBlank(value)) return null;
   const text = String(value).trim();
