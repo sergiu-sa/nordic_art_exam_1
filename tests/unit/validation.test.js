@@ -7,6 +7,7 @@ import {
   validateYear,
   validateImageUrl,
   validateImageAlt,
+  validateRegistration,
 } from "../../js/validation.js";
 
 // Convention across validators: null means valid, a string is the inline message.
@@ -247,5 +248,32 @@ describe("validateImageAlt", () => {
 
   it("rejects more than 120 characters", () => {
     expect(validateImageAlt("a".repeat(121))).toBe("Alt text must be 120 characters or fewer.");
+  });
+});
+
+describe("validateRegistration", () => {
+  const valid = { name: "ada_lovelace", email: "ada@stud.noroff.no", password: "supersecret" };
+
+  it("returns all-null for a fully valid set", () => {
+    expect(validateRegistration(valid)).toEqual({ name: null, email: null, password: null });
+  });
+
+  it("reports each field independently", () => {
+    const result = validateRegistration({
+      name: "bad name",
+      email: "ada@gmail.com",
+      password: "short",
+    });
+    expect(result.name).toBe("Name can use only letters, numbers and underscores.");
+    expect(result.email).toBe("Enter a valid stud.noroff.no email address.");
+    expect(result.password).toBe("Password must be at least 8 characters.");
+  });
+
+  it("flags missing fields as required", () => {
+    expect(validateRegistration({ name: "", email: "", password: "" })).toEqual({
+      name: "Name is required.",
+      email: "Email is required.",
+      password: "Password is required.",
+    });
   });
 });

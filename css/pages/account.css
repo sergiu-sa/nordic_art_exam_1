@@ -1,0 +1,344 @@
+/* Door layout and entrance — the register/login page pattern. */
+
+.door {
+  position: relative;
+  overflow: hidden;
+  padding: 48px var(--gutter) 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* sun halo — faint radial wash behind the card; one colour moment, low dose */
+.door::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 760px;
+  height: 760px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 212, 58, 0.22), transparent 62%);
+  pointer-events: none;
+}
+
+/* ---- the parted works (decorative, aria-hidden) ---- */
+.piece {
+  position: absolute;
+  pointer-events: none;
+  transition:
+    transform 1.05s cubic-bezier(0.2, 0.6, 0.2, 1),
+    opacity 0.7s ease;
+}
+
+/* base positions — kept in CSS (not inline) so the responsive overrides below win
+   by source order, no. Order matches the markup: 1 = top-left anchor … 6 = bottom-right anchor. */
+.piece:nth-of-type(1) {
+  left: -1%;
+  top: 3%;
+  width: 300px;
+}
+
+.piece:nth-of-type(2) {
+  left: 82%;
+  top: 5%;
+  width: 208px;
+}
+
+.piece:nth-of-type(3) {
+  left: 4%;
+  top: 50%;
+  width: 206px;
+}
+
+.piece:nth-of-type(4) {
+  left: 80%;
+  top: 40%;
+  width: 196px;
+}
+
+.piece:nth-of-type(5) {
+  left: -4%;
+  top: 66%;
+  width: 190px;
+}
+
+.piece:nth-of-type(6) {
+  left: 64%;
+  top: 47%;
+  width: 300px;
+}
+
+.piece img {
+  width: 100%;
+  filter: saturate(0.8);
+  opacity: 0.88;
+  animation: floaty 9s ease-in-out infinite alternate;
+  transition: opacity 0.6s ease;
+}
+
+/* dim the works when the user focuses inside the card — lets the form breathe */
+.door:focus-within .piece img {
+  opacity: 0.45;
+}
+
+.piece:nth-child(odd) img {
+  animation-duration: 11s;
+  animation-delay: -4s;
+}
+
+.piece:nth-child(3n) img {
+  animation-duration: 7.5s;
+  animation-delay: -2s;
+}
+
+@keyframes floaty {
+  from {
+    transform: translateY(-7px);
+  }
+  to {
+    transform: translateY(9px);
+  }
+}
+
+/* ---- the framed card ---- */
+.doorcard {
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  background: var(--paper);
+  border: 1px solid rgba(14, 14, 14, 0.22);
+  box-shadow: 0 30px 70px rgba(14, 14, 14, 0.16);
+  padding: 30px 32px 28px;
+  margin-top: 26px;
+  transition:
+    opacity 0.8s ease 0.4s,
+    transform 0.9s cubic-bezier(0.34, 1.45, 0.45, 1) 0.4s;
+}
+
+/* entrance start states — only armed when JS is present and motion is allowed;
+   final (visible) state is the CSS default so the door shows without JS or under reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  .js .door .piece {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.72);
+  }
+
+  .js .door .doorcard {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  .door.in .piece {
+    opacity: 1;
+    transform: none;
+  }
+
+  .door.in .doorcard {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* renamed from .tag to avoid colliding with the component .tag chip in tag.css */
+.doorcard__tag {
+  display: inline-block;
+  border-left: 2px solid var(--signal);
+  padding: 3px 0 3px 10px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--signal-deep);
+}
+
+.doorcard h1 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(34px, 5vw, 44px);
+  line-height: 1;
+  margin-top: 14px;
+}
+
+.doorcard .hello {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 15px;
+  color: var(--grey-700);
+  margin-top: 10px;
+}
+
+/* ---- fields ---- */
+.field {
+  margin-top: 22px;
+}
+
+.field label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--grey-600);
+  margin-bottom: 9px;
+}
+
+/* the rule, stated before anything goes wrong */
+.field label .hint {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  color: var(--grey-600);
+}
+
+/* the email domain is a fixed literal, not a rule of thumb — state it in the rule colour */
+.field label .hint-mark {
+  color: var(--signal-deep);
+  font-weight: 500;
+}
+
+.pwrow {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.pwrow .fbox {
+  flex: 1;
+}
+
+.peek {
+  flex: none;
+  padding: 0 12px;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--grey-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.peek[aria-pressed="true"] {
+  color: var(--signal-deep);
+}
+
+/* ---- submit ---- */
+.doorcard .go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 26px;
+  min-height: 44px;
+  padding: 11px 26px;
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--signal-deep);
+}
+
+/* ---- swap foot row ---- */
+.doorcard .swap {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(14, 14, 14, 0.15);
+  font-size: 12px;
+  color: var(--grey-600);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* the stamp signs the card's foot, beside the swap link */
+.doorcard .swapstamp {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+.doorcard .swap a {
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    color 0.3s,
+    letter-spacing 0.3s;
+}
+
+.doorcard .swap a:hover {
+  color: var(--signal);
+  letter-spacing: 0.04em;
+}
+
+.doorcard .swap a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+/* ---- tablet: card stays 400px so the side bands narrow — shrink the
+   works (they may tuck behind the card; it sits on top, solid) ---- */
+@media (max-width: 1000px) {
+  .piece:nth-of-type(1) {
+    top: 2%;
+    width: 214px;
+  }
+
+  .piece:nth-of-type(2) {
+    left: 84%;
+    width: 150px;
+  }
+
+  .piece:nth-of-type(3) {
+    left: 1%;
+    width: 150px;
+  }
+
+  .piece:nth-of-type(4) {
+    left: 82%;
+    width: 142px;
+  }
+
+  .piece:nth-of-type(5) {
+    width: 146px;
+  }
+
+  .piece:nth-of-type(6) {
+    left: 70%;
+    top: 50%;
+    width: 214px;
+  }
+}
+
+/* ---- mobile: just the two anchors, peeking past the card ---- */
+@media (max-width: 720px) {
+  .door {
+    padding: 30px var(--gutter) 70px;
+  }
+
+  .door .ih {
+    display: none;
+  }
+
+  .piece:nth-of-type(1) {
+    left: -6%;
+    top: 1%;
+    width: 134px;
+  }
+
+  .piece:nth-of-type(6) {
+    left: 60%;
+    top: 87%;
+    width: 126px;
+  }
+}
+
+/* entrance start state is never armed under reduced motion (gated above in no-preference);
+   suppress transitions on the base rules and kill the floaty drift */
+@media (prefers-reduced-motion: reduce) {
+  .piece,
+  .doorcard {
+    transition: none;
+  }
+
+  .piece img {
+    animation: none;
+  }
+}

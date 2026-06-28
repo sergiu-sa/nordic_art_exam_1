@@ -46,6 +46,14 @@ export function validateName(value) {
   return value.length > NAME_MAX ? `Name must be ${NAME_MAX} characters or fewer.` : null;
 }
 
+export function validateRegistration({ name, email, password }) {
+  return {
+    name: validateName(name),
+    email: validateEmail(email),
+    password: validatePassword(password),
+  };
+}
+
 export function validateYear(value) {
   if (isBlank(value)) return null;
   const text = String(value).trim();
