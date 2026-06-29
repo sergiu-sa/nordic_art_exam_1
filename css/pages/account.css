@@ -340,5 +340,6 @@
 
   .piece img {
     animation: none;
+    transition: none;
   }
 }
