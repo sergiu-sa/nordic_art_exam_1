@@ -8,6 +8,7 @@ import {
   validateImageUrl,
   validateImageAlt,
   validateRegistration,
+  validateLogin,
 } from "../../js/validation.js";
 
 // Convention across validators: null means valid, a string is the inline message.
@@ -272,6 +273,39 @@ describe("validateRegistration", () => {
   it("flags missing fields as required", () => {
     expect(validateRegistration({ name: "", email: "", password: "" })).toEqual({
       name: "Name is required.",
+      email: "Email is required.",
+      password: "Password is required.",
+    });
+  });
+});
+
+describe("validateLogin", () => {
+  const valid = { email: "ada@stud.noroff.no", password: "supersecret" };
+
+  it("returns all-null for a valid stud.noroff.no email and an 8+ char password", () => {
+    expect(validateLogin(valid)).toEqual({ email: null, password: null });
+  });
+
+  it("flags a non-stud.noroff.no email and leaves a valid password null", () => {
+    const result = validateLogin({
+      email: "ada@gmail.com",
+      password: "supersecret",
+    });
+    expect(result.email).toBe("Enter a valid stud.noroff.no email address.");
+    expect(result.password).toBeNull();
+  });
+
+  it("flags a too-short password and leaves a valid email null", () => {
+    const result = validateLogin({
+      email: "ada@stud.noroff.no",
+      password: "short",
+    });
+    expect(result.email).toBeNull();
+    expect(result.password).toBe("Password must be at least 8 characters.");
+  });
+
+  it("flags missing fields as required", () => {
+    expect(validateLogin({ email: "", password: "" })).toEqual({
       email: "Email is required.",
       password: "Password is required.",
     });

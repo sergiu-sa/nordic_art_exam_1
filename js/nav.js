@@ -90,6 +90,12 @@ function initAuthState(doc) {
   }
 }
 
+// Re-sync the chrome to the current session
+// called after a login completes mid-page (login.js), so nav.js stays the single owner of the body.authed toggle.
+export function syncAuthState(doc = document) {
+  applyAuthClass(doc);
+}
+
 function applyAuthClass(doc) {
   doc.body.classList.toggle("authed", isLoggedIn());
 }
