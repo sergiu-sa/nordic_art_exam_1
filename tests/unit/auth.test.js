@@ -127,25 +127,36 @@ describe("logout / isLoggedIn", () => {
 });
 
 describe("requireAuth", () => {
-  it("redirects to the login page with ?from when logged out", () => {
-    vi.stubGlobal("window", { location: { href: "" } });
+  it("redirects (replace) to the login page with ?from when logged out", () => {
+    const replace = vi.fn();
+    vi.stubGlobal("window", { location: { replace } });
     const ok = requireAuth({ from: "create" });
     expect(ok).toBe(false);
-    expect(window.location.href).toBe("../account/login.html?from=create");
+    expect(replace).toHaveBeenCalledWith("../account/login.html?from=create");
+  });
+
+  it("carries the artwork id on the edit hop", () => {
+    const replace = vi.fn();
+    vi.stubGlobal("window", { location: { replace } });
+    const ok = requireAuth({ from: "edit", id: "abc-123" });
+    expect(ok).toBe(false);
+    expect(replace).toHaveBeenCalledWith("../account/login.html?from=edit&id=abc-123");
   });
 
   it("passes through without redirecting when logged in", () => {
-    vi.stubGlobal("window", { location: { href: "" } });
+    const replace = vi.fn();
+    vi.stubGlobal("window", { location: { replace } });
     setSession({ accessToken: "tok-123", apiKey: "key-abc" });
     const ok = requireAuth({ from: "create" });
     expect(ok).toBe(true);
-    expect(window.location.href).toBe("");
+    expect(replace).not.toHaveBeenCalled();
   });
 
-  it("redirects to the bare login path with no query string when called with no from", () => {
-    vi.stubGlobal("window", { location: { href: "" } });
+  it("redirects to the bare login path with no query when called with no args", () => {
+    const replace = vi.fn();
+    vi.stubGlobal("window", { location: { replace } });
     const ok = requireAuth();
     expect(ok).toBe(false);
-    expect(window.location.href).toBe("../account/login.html");
+    expect(replace).toHaveBeenCalledWith("../account/login.html");
   });
 });
