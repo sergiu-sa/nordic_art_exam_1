@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      document.documentElement.classList.add("js");
+    </script>
     <title>Edit artwork · Nordic Art Archive</title>
     <meta
       name="description"
@@ -55,7 +58,7 @@
       </ol>
     </nav>
 
-    <main id="main">
+    <main id="main" class="guarded">
       <h1>Edit artwork</h1>
       <p>The edit and delete form lands here. The archive is being built.</p>
     </main>
@@ -63,5 +66,7 @@
     <footer>
       <p>Nordic Art Archive</p>
     </footer>
+
+    <script type="module" src="../js/pages/edit.js"></script>
   </body>
 </html>

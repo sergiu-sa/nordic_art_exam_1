@@ -92,3 +92,10 @@ body:not(.authed) .auth-in {
 body.authed .auth-out {
   display: none;
 }
+
+/* Auth guard: create/edit hide <main> until their page module confirms the session and
+   reveals it, so a logged-out hit never paints owner content before requireAuth redirects.
+   Gated on .js so a no-JS visitor still sees the markup (these pages need JS anyway). */
+html.js .guarded {
+  display: none;
+}
