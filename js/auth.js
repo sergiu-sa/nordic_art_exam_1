@@ -37,11 +37,15 @@ export function isLoggedIn() {
   return Boolean(getToken() && getApiKey());
 }
 
-// the redirect guard for create/edit (wired in issue 29).
-// Default path is correct for pages under artwork/ (create.html, edit.html).
-export function requireAuth({ from, loginPath = "../account/login.html" } = {}) {
+// The redirect guard for create/edit (default path is correct for pages under artwork/).
+// Uses .replace, not .href, so a bounced visitor pressing Back doesn't land back on the guarded page and get re-bounced into a loop.
+// The edit hop passes an id to resume to it.
+export function requireAuth({ from, id, loginPath = "../account/login.html" } = {}) {
   if (isLoggedIn()) return true;
-  const url = from ? `${loginPath}?from=${encodeURIComponent(from)}` : loginPath;
-  window.location.href = url;
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (id) params.set("id", id);
+  const query = params.toString();
+  window.location.replace(query ? `${loginPath}?${query}` : loginPath);
   return false;
 }

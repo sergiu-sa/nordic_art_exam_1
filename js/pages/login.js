@@ -6,6 +6,7 @@ import { initNav, syncAuthState } from "../nav.js";
 import { initDoor } from "../account.js";
 import { login, isLoggedIn } from "../auth.js";
 import { validateLogin } from "../validation.js";
+import { resolveReturn } from "../return-target.js";
 import {
   showFieldErrors,
   setFieldError,
@@ -22,15 +23,6 @@ const FIELDS = ["email", "password"];
 const BAD_CREDENTIALS = "That key doesn't fit. Check your email or password.";
 const GENERIC_ERROR = "Could not log you in. Please try again.";
 
-// Where the welcome link sends an owner back to.
-// The guard passes only a page name, not the artwork id, so edit returns to "my works".
-const RETURN_TARGETS = {
-  create: { href: "../artwork/create.html", label: "add artwork" },
-  edit: { href: "../profile.html", label: "my works" },
-  profile: { href: "../profile.html", label: "my works" },
-};
-const DEFAULT_RETURN = { href: "../index.html", label: "into the archive" };
-
 // The card's one line, set by where the visitor came from.
 const LANDING_MESSAGES = {
   create: "Log in first — then hang your work.",
@@ -45,7 +37,7 @@ const hello = document.getElementById("hello");
 
 if (isLoggedIn()) {
   // an already-signed-in owner isn't asked to log in again
-  showWelcome();
+  onAuthenticated();
 } else {
   applyLandingMessage();
   if (form) {
@@ -85,7 +77,7 @@ async function onSubmit(event) {
   setStatus(status, { state: "busy", message: "unlocking…" });
   try {
     await login(values);
-    showWelcome();
+    onAuthenticated();
   } catch (error) {
     handleFailure(error);
   } finally {
@@ -93,20 +85,27 @@ async function onSubmit(event) {
   }
 }
 
-// Success: flip the chrome to authed in place, then swap the form for the serif welcome.
-function showWelcome() {
+// After auth: a guarded arrival (?from=) resumes straight to its destination;
+// a direct login keeps the "Welcome back." beat.
+function onAuthenticated() {
   if (!form) return;
+  const params = new URLSearchParams(location.search);
+  const target = resolveReturn({
+    from: params.get("from"),
+    id: params.get("id"),
+  });
+
+  if (target.resume) {
+    location.replace(target.href);
+    return;
+  }
+
   syncAuthState();
   setStatus(status, { state: "idle", message: "" });
   renderFormSuccess(form, {
     message: "Welcome back.",
-    actions: [returnAction()],
+    actions: [{ href: target.href, label: target.label }],
   });
-}
-
-function returnAction() {
-  const from = new URLSearchParams(location.search).get("from");
-  return RETURN_TARGETS[from] ?? DEFAULT_RETURN;
 }
 
 function applyLandingMessage() {
