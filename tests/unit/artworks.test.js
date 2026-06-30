@@ -21,6 +21,7 @@ import {
   splitParagraphs,
   isShortDescription,
   isOwnArtwork,
+  isArtworkId,
 } from "../../js/artworks.js";
 
 // A minimal usable artwork; override fields per case.
@@ -477,5 +478,23 @@ describe("isOwnArtwork", () => {
 
   it("ignores surrounding whitespace on the owner name", () => {
     expect(isOwnArtwork({ owner: { name: " vera_holt " } }, "vera_holt")).toBe(true);
+  });
+});
+
+describe("isArtworkId", () => {
+  it("accepts a UUID", () => {
+    expect(isArtworkId("a1b2c3d4-e5f6-7890-abcd-ef1234567890")).toBe(true);
+  });
+
+  it("is case-insensitive", () => {
+    expect(isArtworkId("A1B2C3D4-E5F6-7890-ABCD-EF1234567890")).toBe(true);
+  });
+
+  it("rejects a non-UUID, empty, or nullish value", () => {
+    expect(isArtworkId("123")).toBe(false);
+    expect(isArtworkId("not-a-uuid")).toBe(false);
+    expect(isArtworkId("")).toBe(false);
+    expect(isArtworkId(null)).toBe(false);
+    expect(isArtworkId(undefined)).toBe(false);
   });
 });

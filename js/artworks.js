@@ -4,6 +4,14 @@ import { formatYear } from "./format.js";
 
 const JUNK_TITLES = new Set(["", "string"]);
 
+const ARTWORK_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// The detail and edit pages read the work id from ?id=; guard it before any fetch
+// so a junk id fails fast (no wasted request).
+export function isArtworkId(id) {
+  return typeof id === "string" && ARTWORK_ID_RE.test(id);
+}
+
 // The feed is the whole shared pool, so guard the obvious junk: a real title and a real http(s) image URL.
 // Dead URLs that still look valid are caught at render by guardImage; there's no way to know a host is down without a probe.
 export function isUsableArtwork(artwork) {

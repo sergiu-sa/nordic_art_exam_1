@@ -9,6 +9,7 @@ import {
   validateImageAlt,
   validateRegistration,
   validateLogin,
+  validateArtworkForm,
 } from "../../js/validation.js";
 
 // Convention across validators: null means valid, a string is the inline message.
@@ -141,6 +142,8 @@ describe("validateName", () => {
 });
 
 describe("validateYear", () => {
+  const badYear = "A year, like 1914.";
+
   it("is optional — empty is valid", () => {
     expect(validateYear("")).toBeNull();
     expect(validateYear("   ")).toBeNull();
@@ -148,40 +151,43 @@ describe("validateYear", () => {
     expect(validateYear(undefined)).toBeNull();
   });
 
-  it("passes a positive whole year as a string", () => {
-    expect(validateYear("1893")).toBeNull();
-  });
-
-  it("passes a positive whole year as a number", () => {
-    expect(validateYear(1893)).toBeNull();
+  it("passes a plausible positive whole year (string or number)", () => {
+    expect(validateYear("1893", { max: 2026 })).toBeNull();
+    expect(validateYear(1893, { max: 2026 })).toBeNull();
+    expect(validateYear("2026", { max: 2026 })).toBeNull();
   });
 
   it("tolerates surrounding whitespace", () => {
-    expect(validateYear("  1893  ")).toBeNull();
+    expect(validateYear("  1893  ", { max: 2026 })).toBeNull();
   });
 
-  const invalid = "Enter a valid year — a positive whole number like 1893.";
-
   it("rejects non-numeric text", () => {
-    expect(validateYear("abc")).toBe(invalid);
+    expect(validateYear("abc")).toBe(badYear);
+    expect(validateYear("nineteen")).toBe(badYear);
   });
 
   it("rejects a decimal", () => {
-    expect(validateYear("18.5")).toBe(invalid);
-    expect(validateYear(1893.5)).toBe(invalid);
+    expect(validateYear("18.5")).toBe(badYear);
+    expect(validateYear(1893.5)).toBe(badYear);
   });
 
   it("rejects zero and negatives", () => {
-    expect(validateYear("0")).toBe(invalid);
-    expect(validateYear("-5")).toBe(invalid);
-  });
-
-  it("rejects the number zero passed directly", () => {
-    expect(validateYear(0)).toBe(invalid);
+    expect(validateYear("0")).toBe(badYear);
+    expect(validateYear("-5")).toBe(badYear);
+    expect(validateYear(0)).toBe(badYear);
   });
 
   it("rejects digits mixed with other characters", () => {
-    expect(validateYear("1893!")).toBe(invalid);
+    expect(validateYear("1893!")).toBe(badYear);
+  });
+
+  it("rejects a year past the ceiling", () => {
+    expect(validateYear("3000", { max: 2026 })).toBe("A year between 1 and 2026.");
+  });
+
+  it("defaults the ceiling to the current year", () => {
+    const next = String(new Date().getFullYear() + 1);
+    expect(validateYear(next)).toMatch(/^A year between 1 and \d{4}\.$/);
   });
 });
 
@@ -309,5 +315,56 @@ describe("validateLogin", () => {
       email: "Email is required.",
       password: "Password is required.",
     });
+  });
+});
+
+describe("validateArtworkForm", () => {
+  const ok = {
+    title: "Winter Night",
+    artist: "Harald Sohlberg",
+    year: "1914",
+    medium: "painting",
+    description: "A mountain at dusk.",
+    imageUrl: "https://example.com/a.jpg",
+    imageAlt: "A snowy ridge",
+  };
+
+  it("passes a fully valid set", () => {
+    const errors = validateArtworkForm(ok, { max: 2026 });
+    expect(Object.values(errors).every((message) => message === null)).toBe(true);
+  });
+
+  it("requires title, artist, medium, description with the studio voice", () => {
+    const errors = validateArtworkForm(
+      { ...ok, title: "", artist: "  ", medium: "", description: "" },
+      { max: 2026 }
+    );
+    expect(errors.title).toBe("Every work needs a title.");
+    expect(errors.artist).toBe("Who made it?");
+    expect(errors.medium).toBe("What is it made with — oil, pencil, bronze…");
+    expect(errors.description).toBe("Tell its story — a line is enough.");
+  });
+
+  it("treats year, image url and alt as optional when blank", () => {
+    const errors = validateArtworkForm(
+      { ...ok, year: "", imageUrl: "", imageAlt: "" },
+      { max: 2026 }
+    );
+    expect(errors.year).toBeNull();
+    expect(errors.imageUrl).toBeNull();
+    expect(errors.imageAlt).toBeNull();
+  });
+
+  it("validates year and image url shape when present", () => {
+    const errors = validateArtworkForm(
+      { ...ok, year: "3000", imageUrl: "not-a-url" },
+      { max: 2026 }
+    );
+    expect(errors.year).toBe("A year between 1 and 2026.");
+    expect(errors.imageUrl).not.toBeNull();
+  });
+
+  it("has no location key — location carries no rule", () => {
+    expect("location" in validateArtworkForm(ok, { max: 2026 })).toBe(false);
   });
 });
