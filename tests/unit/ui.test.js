@@ -241,6 +241,27 @@ describe("renderError", () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
+  it("renders a link, not a button, for a navigation exit (retryHref)", () => {
+    document.body.innerHTML = `<div id="region"></div>`;
+    const region = document.getElementById("region");
+    renderError(region, {
+      message: "This work isn't in the archive.",
+      retryHref: "../collection.html",
+      retryLabel: "back to all artworks",
+    });
+    const action = region.querySelector(".ebtn");
+    expect(action.tagName).toBe("A");
+    expect(action.getAttribute("href")).toBe("../collection.html");
+    expect(action.textContent).toMatch(/back to all artworks/);
+  });
+
+  it("prefers retryHref over onRetry when both are given", () => {
+    document.body.innerHTML = `<div id="region"></div>`;
+    const region = document.getElementById("region");
+    renderError(region, { message: "x", retryHref: "/go", onRetry: vi.fn() });
+    expect(region.querySelector(".ebtn").tagName).toBe("A");
+  });
+
   it("replaces prior content", () => {
     document.body.innerHTML = `<div id="region"><p>old</p></div>`;
     const region = document.getElementById("region");
