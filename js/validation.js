@@ -109,7 +109,7 @@ const requiredField = (value, key) => (isBlank(value) ? REQUIRED_MESSAGES[key] :
 
 // Aggregates the create/edit form. title/artist/medium/description are required;
 // year/image url/alt are optional and only checked when present.
-// location carries no rule, so it has no key. 
+// location carries no rule, so it has no key.
 // The live image-reachability probe lives in the wall, not here. max is forwarded to validateYear.
 export function validateArtworkForm(values = {}, { max } = {}) {
   return {
