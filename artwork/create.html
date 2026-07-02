@@ -41,31 +41,358 @@
     <link rel="stylesheet" href="../css/base.css" />
     <link rel="stylesheet" href="../css/components/skip.css" />
     <link rel="stylesheet" href="../css/components/breadcrumbs.css" />
+    <link rel="stylesheet" href="../css/components/nav.css" />
+    <link rel="stylesheet" href="../css/components/footer.css" />
+    <link rel="stylesheet" href="../css/components/button.css" />
+    <link rel="stylesheet" href="../css/components/tag.css" />
+    <link rel="stylesheet" href="../css/components/form.css" />
+    <link rel="stylesheet" href="../css/components/feedback.css" />
+    <link rel="stylesheet" href="../css/pages/create-edit.css" />
   </head>
-  <body>
+  <body id="top">
     <a class="skip" href="#main">Skip to content</a>
 
-    <header>
-      <nav aria-label="Primary">
-        <a href="../index.html">Nordic Art Archive</a>
-      </nav>
+    <!-- icon sprite — Heroicons outline 24px (MIT) · https://heroicons.com -->
+    <svg style="display: none" aria-hidden="true">
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+      </symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <path d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 18 18 6M6 6l12 12" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 4.5v15m7.5-7.5h-15" />
+      </symbol>
+    </svg>
+
+    <!-- ============ masthead ============ -->
+    <header class="site-head">
+      <div class="utility">
+        <span>a living archive of nordic art — est. 2026</span>
+        <span class="auth">
+          <span class="auth-out"
+            ><a href="../account/login.html">log in</a
+            ><a href="../account/register.html">register</a></span
+          >
+          <span class="auth-in"
+            ><a href="../profile.html">my works</a
+            ><button class="logout" type="button">log out</button></span
+          >
+        </span>
+      </div>
+      <div class="mainrow">
+        <span class="lead"
+          ><a href="../index.html"
+            ><svg class="i" aria-hidden="true"><use href="#i-arrow-left" /></svg> the archive</a
+          ></span
+        >
+        <a class="wordmark" href="../index.html"
+          ><img class="naa" src="../assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></a
+        >
+        <span class="headtools">
+          <a
+            class="tickbtn menu-btn add-btn auth-in"
+            href="create.html"
+            aria-label="add artwork"
+            aria-current="page"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-plus" /></svg>
+            <span class="lbl">add artwork</span>
+          </a>
+          <a
+            class="tickbtn menu-btn icon-btn"
+            href="../collection.html#search"
+            aria-label="search the archive"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-search" /></svg>
+          </a>
+          <button
+            class="tickbtn menu-btn"
+            id="menu-open"
+            type="button"
+            aria-expanded="false"
+            aria-controls="curtain"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-menu" /></svg>
+            menu
+          </button>
+        </span>
+      </div>
     </header>
 
-    <nav class="crumbs" aria-label="Breadcrumb">
-      <ol>
-        <li><a href="../index.html">the archive</a></li>
-        <li><span aria-current="page">add an artwork</span></li>
-      </ol>
-    </nav>
+    <!-- ============ menu curtain ============ -->
+    <div class="curtain" id="curtain" aria-hidden="true">
+      <div class="curtain-top">
+        <span class="wordmark"
+          ><img class="naa" src="../assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></span
+        >
+        <button class="tickbtn menu-btn" id="menu-close" type="button">
+          close
+          <svg class="i" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <nav aria-label="site menu">
+        <a href="../index.html"
+          ><span class="num">01</span><span class="word">the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="../collection.html"
+          ><span class="num">02</span><span class="word">all artworks</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="../hands.html"
+          ><span class="num">03</span><span class="word">the hands of the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="../account/login.html"
+          ><span class="num">04</span><span class="word">log in</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-in" href="../profile.html"
+          ><span class="num">04</span><span class="word">my works</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="../account/login.html?from=create"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+          ><span class="tag tag--dark">owners</span></a
+        >
+        <a class="auth-in" href="create.html"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+      </nav>
+      <div class="curtain-mark" aria-hidden="true">nordic <em>art archive</em></div>
+    </div>
 
     <main id="main" class="guarded">
-      <h1>Add an artwork</h1>
-      <p>The create form lands here. The archive is being built.</p>
+      <nav class="crumbs" aria-label="breadcrumb">
+        <ol>
+          <li><a href="../index.html">the archive</a></li>
+          <li><span aria-current="page">add an artwork</span></li>
+        </ol>
+      </nav>
+
+      <section class="studiohead">
+        <p class="label">the studio — owners only</p>
+        <h1>add an artwork</h1>
+        <p class="sub">Describe the work. The wall writes its own label as you go.</p>
+      </section>
+
+      <div class="studio">
+        <form id="studio-form" novalidate>
+          <fieldset class="fgroup">
+            <legend>01 — the work</legend>
+            <div class="field">
+              <label for="title">title</label>
+              <span class="fbox"
+                ><input type="text" id="title" name="title" aria-describedby="title-err"
+              /></span>
+              <p class="ferr" id="title-err"></p>
+            </div>
+            <div class="field">
+              <label for="artist">artist</label>
+              <span class="fbox"
+                ><input type="text" id="artist" name="artist" aria-describedby="artist-err"
+              /></span>
+              <p class="ferr" id="artist-err"></p>
+            </div>
+            <div class="frow">
+              <div class="field">
+                <label for="year">year <span class="hint">— e.g. 1914</span></label>
+                <span class="fbox"
+                  ><input
+                    type="text"
+                    inputmode="numeric"
+                    id="year"
+                    name="year"
+                    aria-describedby="year-err"
+                /></span>
+                <p class="ferr" id="year-err"></p>
+              </div>
+              <div class="field">
+                <label for="medium">medium <span class="hint">— oil, pencil, bronze…</span></label>
+                <span class="fbox"
+                  ><input type="text" id="medium" name="medium" aria-describedby="medium-err"
+                /></span>
+                <p class="ferr" id="medium-err"></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="fgroup">
+            <legend>02 — the story</legend>
+            <div class="field">
+              <label for="description">description</label>
+              <span class="fbox">
+                <textarea
+                  id="description"
+                  name="description"
+                  aria-describedby="description-err"
+                ></textarea>
+              </span>
+              <p class="ferr" id="description-err"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="fgroup">
+            <legend>03 — the image</legend>
+            <div class="field">
+              <label for="imageUrl"
+                >image url
+                <span class="hint">— one image per artwork; a live, public link</span></label
+              >
+              <span class="fbox"
+                ><input type="url" id="imageUrl" name="imageUrl" aria-describedby="imageUrl-err"
+              /></span>
+              <p class="ferr" id="imageUrl-err"></p>
+            </div>
+            <div class="field">
+              <label for="imageAlt"
+                >alt text <span class="hint">— optional, describe the image</span></label
+              >
+              <span class="fbox"
+                ><input type="text" id="imageAlt" name="imageAlt" aria-describedby="imageAlt-err"
+              /></span>
+              <p class="ferr" id="imageAlt-err"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="fgroup">
+            <legend>04 — where it lives</legend>
+            <div class="field">
+              <label for="location">location <span class="hint">— e.g. Oslo</span></label>
+              <span class="fbox"
+                ><input type="text" id="location" name="location" aria-describedby="location-err"
+              /></span>
+              <p class="ferr" id="location-err"></p>
+            </div>
+          </fieldset>
+
+          <button class="go tickbtn" type="submit" id="go">
+            hang it in the archive
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+          </button>
+          <a class="relog" href="../account/login.html?from=create">
+            log in again <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+          </a>
+
+          <p class="status" id="status" role="status" aria-live="polite">
+            <span class="msg"></span>
+            <span class="lbar" aria-hidden="true"><i></i></span>
+          </p>
+        </form>
+
+        <aside class="wall" aria-hidden="true">
+          <figure class="pframe">
+            <div class="blank">
+              <span class="yet">Nothing hangs here — <em>yet.</em></span>
+            </div>
+            <img id="pimg" alt="" />
+          </figure>
+          <div class="pcap">
+            <span id="pcap-title" class="faint">Untitled</span><span id="pcap-year"></span>
+            <span class="meta"
+              ><span id="pcap-artist"></span> · <span id="pcap-medium"></span
+            ></span>
+          </div>
+          <div class="pcrops">
+            <span class="pc"><img alt="" /></span>
+            <span class="pc"><img alt="" /></span>
+            <span class="pc"><img alt="" /></span>
+          </div>
+          <span class="wkick">the wall</span>
+        </aside>
+      </div>
     </main>
 
-    <footer>
-      <p>Nordic Art Archive</p>
+    <footer class="fC">
+      <div class="fhead">
+        <div class="fin">fin — the exit</div>
+      </div>
+      <div class="fmid">
+        <nav class="fcols" aria-label="footer">
+          <div class="fcol">
+            <div class="fkick">01 — wander</div>
+            <a href="../collection.html"
+              >all artworks
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="../collection.html"
+              >by medium
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="../hands.html"
+              >the hands of the archive
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+          </div>
+          <div class="fcol">
+            <div class="fkick">02 — account</div>
+            <span class="auth-out">
+              <a href="../account/login.html"
+                >log in
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="../account/register.html"
+                >register
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="../account/login.html?from=create"
+                >add artwork <span class="tag tag--dark">owners</span></a
+              >
+            </span>
+            <span class="auth-in">
+              <a href="../profile.html"
+                >my works
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="create.html"
+                >add artwork
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <button class="logout" type="button">log out</button>
+            </span>
+          </div>
+        </nav>
+        <img class="stamp" src="../assets/img/naa-stamp-sun-on-ink.svg" alt="" />
+      </div>
+      <div class="legal">© 2026 Nordic Art Archive — a fictional archive built for Noroff EP1</div>
     </footer>
+
+    <noscript>
+      <p class="noscript-note">
+        Nordic Art Archive uses JavaScript to add and manage artworks. Please enable it to hang a
+        work.
+      </p>
+    </noscript>
 
     <script type="module" src="../js/pages/create.js"></script>
   </body>

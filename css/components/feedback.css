@@ -159,3 +159,35 @@
     width: 100%;
   }
 }
+
+/* the "log in again" recovery link — shown only on an auth-expired error; JS sets display: inline-flex to reveal */
+.relog {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--signal-deep);
+  text-decoration: none;
+}
+
+.relog:hover {
+  letter-spacing: 0.06em;
+}
+
+.relog:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+.relog .i {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relog {
+    transition: none;
+  }
+}

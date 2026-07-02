@@ -106,3 +106,12 @@
 .fbox input[aria-invalid="true"] {
   border-color: var(--signal-deep);
 }
+
+/* keep the kit's decorative transitions out of reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .fbox::before,
+  .fbox::after,
+  .formdone__link {
+    transition: none;
+  }
+}

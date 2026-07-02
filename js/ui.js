@@ -1,4 +1,5 @@
-// Shared feedback: loading / success / empty / error states and form-kit feedback. Stateless helpers, callers pass their elements.
+// Shared feedback: loading / success / empty / error states and form-kit feedback.
+// Stateless helpers, callers pass their elements.
 
 const DEFAULT_FALLBACK = "Something went wrong.";
 
@@ -169,12 +170,20 @@ function stateBlock(doc, className, { message, sub }) {
 
 export function renderError(
   container,
-  { message, sub = "", onRetry, retryLabel = "try again" } = {}
+  { message, sub = "", onRetry, retryHref, retryLabel = "try again" } = {}
 ) {
   const doc = container.ownerDocument;
   const block = stateBlock(doc, "statefail", { message, sub });
   block.setAttribute("role", "alert");
-  if (typeof onRetry === "function") {
+  // a navigation exit (e.g. "back to all artworks") is a link, not a button;
+  // a genuine retry stays a button. retryHref wins when both are given.
+  if (retryHref) {
+    const link = doc.createElement("a");
+    link.className = "ebtn tickbtn";
+    link.href = retryHref;
+    link.textContent = retryLabel;
+    block.appendChild(link);
+  } else if (typeof onRetry === "function") {
     const btn = doc.createElement("button");
     btn.type = "button";
     btn.className = "ebtn tickbtn";

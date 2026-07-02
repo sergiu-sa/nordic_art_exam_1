@@ -13,7 +13,8 @@ const IMAGE_URL_MAX = 300;
 const IMAGE_ALT_MAX = 120;
 
 const BAD_EMAIL = "Enter a valid stud.noroff.no email address.";
-const BAD_YEAR = "Enter a valid year — a positive whole number like 1893.";
+const BAD_YEAR = "A year, like 1914.";
+const yearOutOfRange = (max) => `A year between 1 and ${max}.`;
 const BAD_IMAGE_URL = "Enter a valid image URL starting with http:// or https://.";
 
 const isNullish = (value) => value === null || value === undefined;
@@ -61,11 +62,17 @@ export function validateLogin({ email, password }) {
   };
 }
 
-export function validateYear(value) {
+// Year is optional; when present it must be a positive whole number no later than
+// `max` (defaults to the current year — a work can't be dated in the future).
+// max is injectable so the validator stays pure and testable.
+export function validateYear(value, { max = new Date().getFullYear() } = {}) {
   if (isBlank(value)) return null;
   const text = String(value).trim();
-  const isPositiveWholeNumber = DIGITS_ONLY.test(text) && Number(text) > 0;
-  return isPositiveWholeNumber ? null : BAD_YEAR;
+  if (!DIGITS_ONLY.test(text)) return BAD_YEAR;
+  const year = Number(text);
+  if (year < 1) return BAD_YEAR;
+  if (year > max) return yearOutOfRange(max);
+  return null;
 }
 
 export function validateImageUrl(value) {
@@ -88,4 +95,30 @@ export function validateImageAlt(value) {
   return String(value).trim().length > IMAGE_ALT_MAX
     ? `Alt text must be ${IMAGE_ALT_MAX} characters or fewer.`
     : null;
+}
+
+// The studio form's required-field voice (the four fields the API requires).
+const REQUIRED_MESSAGES = {
+  title: "Every work needs a title.",
+  artist: "Who made it?",
+  medium: "What is it made with — oil, pencil, bronze…",
+  description: "Tell its story — a line is enough.",
+};
+
+const requiredField = (value, key) => (isBlank(value) ? REQUIRED_MESSAGES[key] : null);
+
+// Aggregates the create/edit form. title/artist/medium/description are required;
+// year/image url/alt are optional and only checked when present.
+// location carries no rule, so it has no key.
+// The live image-reachability probe lives in the wall, not here. max is forwarded to validateYear.
+export function validateArtworkForm(values = {}, { max } = {}) {
+  return {
+    title: requiredField(values.title, "title"),
+    artist: requiredField(values.artist, "artist"),
+    year: validateYear(values.year, max === undefined ? {} : { max }),
+    medium: requiredField(values.medium, "medium"),
+    description: requiredField(values.description, "description"),
+    imageUrl: validateImageUrl(values.imageUrl),
+    imageAlt: validateImageAlt(values.imageAlt),
+  };
 }
