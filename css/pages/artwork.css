@@ -469,7 +469,9 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
 
 /* composes the shared .tickbtn (corner frame + focus ring); this adds only the facts-card padding + type */
 .facts .tickbtn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 8px 18px;
   font-family: var(--sans);
   font-size: 11px;
@@ -480,6 +482,32 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
 }
 
 .facts .tickbtn.warn {
+  color: var(--signal-deep);
+}
+
+/* the inline delete confirm — appears in the owner tools when "delete" is pressed
+   (no modal; focus is moved here, the question is the accessible name) */
+.facts .confirm {
+  margin-top: 16px;
+  border-left: 2px solid var(--signal-deep);
+  padding-left: 12px;
+}
+
+.facts .confirm .ask {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.facts .confirm .choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.facts .confirm .yes {
   color: var(--signal-deep);
 }
 

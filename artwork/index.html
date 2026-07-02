@@ -296,12 +296,35 @@
           <aside class="facts">
             <div class="fkicker">at a glance</div>
             <dl id="facts-dl"></dl>
-            <!-- owner tools: .auth-in is hidden until issue #28 (Login page and session handling ) flips body.authed + adds the  owner-name ownership check; artwork.js only sets the edit href here -->
+            <!-- owner tools: .auth-in + the owner-name check (artwork.js) gate these to the work's owner -->
             <div class="owner auth-in" id="owner-tools">
               <div class="fkicker">owner tools</div>
               <div class="tools">
                 <a class="tickbtn" id="edit-link" href="edit.html">edit</a>
-                <button class="tickbtn warn" type="button" id="delete-btn">delete</button>
+                <button class="tickbtn warn" type="button" id="del">delete</button>
+              </div>
+              <div
+                class="confirm"
+                id="confirm"
+                tabindex="-1"
+                role="group"
+                aria-labelledby="confirm-q"
+                hidden
+              >
+                <p class="ask" id="confirm-q">
+                  Take <em id="confirm-title">this work</em> down for good?
+                </p>
+                <div class="choices">
+                  <button class="yes tickbtn" type="button" id="del-yes">yes, take it down</button>
+                  <button class="keep tickbtn" type="button" id="del-keep">no, keep it</button>
+                </div>
+                <p class="status" id="del-status" role="status" aria-live="polite">
+                  <span class="msg"></span><span class="lbar" aria-hidden="true"><i></i></span>
+                </p>
+                <a class="relog" id="del-relog" href="../account/login.html">
+                  log in again
+                  <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+                </a>
               </div>
             </div>
           </aside>

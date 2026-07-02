@@ -4,7 +4,8 @@
 // Pure shaping lives in artworks.js.
 
 import { initNav } from "../nav.js";
-import { getArtwork, getArtworks } from "../api.js";
+import { getArtwork, getArtworks, deleteArtwork } from "../api.js";
+import { initDelete } from "../delete-artwork.js";
 import { errorToMessage, setStatus, guardImage } from "../ui.js";
 import { formatYear, formatDate } from "../format.js";
 import {
@@ -18,6 +19,7 @@ import {
   splitParagraphs,
   isShortDescription,
   isOwnArtwork,
+  isArtworkId,
 } from "../artworks.js";
 import { isLoggedIn } from "../auth.js";
 import { getUserName } from "../session.js";
@@ -26,7 +28,6 @@ const LIST_LIMIT = 100; // the shared pool is a single page; one fetch covers re
 const FETCH_TIMEOUT_MS = 15000;
 const STATES = ["is-loading", "is-ready", "is-notfound", "is-error"];
 const SVG_NS = "http://www.w3.org/2000/svg";
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HTTP_RE = /^https?:\/\//i;
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -85,7 +86,7 @@ initConnzoneTint();
 
 // a missing or malformed id can never resolve to a work
 // fail fast to the not-found state with no wasted request (the API answers a bad id with 400)
-if (!id || !UUID_RE.test(id)) {
+if (!isArtworkId(id)) {
   showNotFound();
 } else {
   load();
@@ -233,13 +234,22 @@ function renderWork(work) {
 
 // owner tools (edit + delete) show only to the owner — stricter than the body.authed nav gate.
 // Set before the page flips to is-ready, so a logged-in non-owner never sees them.
-// The delete handler arrives with owner-actions; here the tools just become visible + the edit link points at this work.
 function setOwnerTools(work) {
   const isOwner = isLoggedIn() && isOwnArtwork(work, getUserName());
   if (els.ownerTools) els.ownerTools.style.display = isOwner ? "" : "none";
-  if (isOwner && els.editLink && work.id) {
+  if (!isOwner) return;
+  if (els.editLink && work.id) {
     els.editLink.href = `edit.html?id=${encodeURIComponent(work.id)}`;
   }
+  // the same inline confirm + DELETE the studio uses; on success the work is gone, so leave its now-stale detail page for the feed
+  initDelete({
+    id: work.id,
+    title: work.title,
+    deleteVerb: deleteArtwork,
+    onDeleted: () => {
+      window.location.href = "../index.html";
+    },
+  });
 }
 
 function renderEntry(work) {
