@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All artworks · Nordic Art Archive</title>
+    <meta
+      name="description"
+      content="Browse, search and filter every work in the Nordic Art Archive — by title, artist, or medium, as a wall of images or a chronological list."
+    />
+    <link rel="canonical" href="https://nordicartarchive.netlify.app/collection.html" />
+
+    <!-- the «naa» stamp — favicon + app icon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/naa-favicon-signal.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon-180.png" />
+    <meta name="theme-color" content="#E63312" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Nordic Art Archive" />
+    <meta property="og:title" content="All artworks · Nordic Art Archive" />
+    <meta
+      property="og:description"
+      content="Browse, search and filter every work in the Nordic Art Archive — the whole collection in one room."
+    />
+    <meta property="og:url" content="https://nordicartarchive.netlify.app/collection.html" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Archivo:wght@400;500;600&display=swap"
+    />
+
+    <!-- styles — cascade order -->
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout/grid.css" />
+    <link rel="stylesheet" href="css/components/skip.css" />
+    <link rel="stylesheet" href="css/components/nav.css" />
+    <link rel="stylesheet" href="css/components/footer.css" />
+    <link rel="stylesheet" href="css/components/section.css" />
+    <link rel="stylesheet" href="css/components/card.css" />
+    <link rel="stylesheet" href="css/components/tag.css" />
+    <link rel="stylesheet" href="css/components/button.css" />
+    <link rel="stylesheet" href="css/components/feedback.css" />
+    <link rel="stylesheet" href="css/components/ink.css" />
+    <link rel="stylesheet" href="css/components/breadcrumbs.css" />
+    <link rel="stylesheet" href="css/components/orbit.css" />
+    <link rel="stylesheet" href="css/pages/collection.css" />
+  </head>
+
+  <!-- is-loading is the default ground so the walk can't flash before collection.js takes over; the page module swaps it for is-ready / is-empty / is-error once the fetch resolves -->
+  <body id="top" class="is-loading">
+    <a class="skip" href="#main">Skip to content</a>
+
+    <!-- icon sprite — Heroicons outline 24px (MIT) · https://heroicons.com -->
+    <svg style="display: none" aria-hidden="true">
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 18 18 6M6 6l12 12" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 4.5v15m7.5-7.5h-15" />
+      </symbol>
+    </svg>
+
+    <!-- the ink — stain filter defs.
+     CANONICAL SOURCE: index.html, like the icon sprite. This page stains the dark-room threshold (t2–t4) and the page-head's hover twin (a3 desktop, stain3 mobile) — stain3m/c3/c4 aren't used here.
+     The filters never animate — only opacities cross-fade. -->
+    <svg style="display: none" aria-hidden="true">
+      <defs>
+        <filter id="stain3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.026 0.1"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="10"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.45" result="g" />
+          <feGaussianBlur in="g" stdDeviation="3 1.2" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="6 2.5" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <!-- a3 — display-size level (~65–124px; the page-head's desktop hover twin) -->
+        <filter id="a3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.015 0.055"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="16"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.7" result="g" />
+          <feGaussianBlur in="g" stdDeviation="4.5 1.9" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="9 4" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <!-- title-size levels (~30–44px) for the dark-room threshold -->
+        <filter id="t2" x="-25%" y="-120%" width="150%" height="340%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.022 0.09"
+            numOctaves="2"
+            seed="11"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="4.5"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.3" result="g" />
+          <feGaussianBlur in="g" stdDeviation="1" result="b" />
+          <feComponentTransfer in="b">
+            <feFuncA type="linear" slope="11" intercept="-3.4" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="t3" x="-30%" y="-140%" width="160%" height="380%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.035 0.13"
+            numOctaves="2"
+            seed="4"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="7"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.35" result="g" />
+          <feGaussianBlur in="g" stdDeviation="2.2 0.9" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="8" intercept="-2.2" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="4.5 1.8" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.5" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+        <filter id="t4" x="-40%" y="-180%" width="180%" height="460%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.02 0.06"
+            numOctaves="3"
+            seed="7"
+            result="n"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            scale="14"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d"
+          />
+          <feMorphology in="d" operator="dilate" radius="0.5" result="g" />
+          <feGaussianBlur in="g" stdDeviation="3 1.8" result="bb" />
+          <feComponentTransfer in="bb" result="bodyink">
+            <feFuncA type="linear" slope="3.6" intercept="-0.7" />
+          </feComponentTransfer>
+          <feGaussianBlur in="d" stdDeviation="6 3.5" result="hb" />
+          <feComponentTransfer in="hb" result="halo">
+            <feFuncA type="linear" slope="0.45" intercept="0" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="halo" />
+            <feMergeNode in="bodyink" />
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- ============ masthead ============ -->
+    <header class="site-head">
+      <div class="utility">
+        <span>a living archive of nordic art — est. 2026</span>
+        <span class="auth">
+          <span class="auth-out"
+            ><a href="account/login.html">log in</a
+            ><a href="account/register.html">register</a></span
+          >
+          <span class="auth-in"
+            ><a href="profile.html">my works</a
+            ><button class="logout" type="button">log out</button></span
+          >
+        </span>
+      </div>
+      <div class="mainrow">
+        <span class="lead"
+          ><a href="collection.html"
+            >all artworks <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg></a
+        ></span>
+        <a class="wordmark" href="index.html"
+          ><img class="naa" src="assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></a
+        >
+        <span class="headtools">
+          <!-- the owner's primary action — only when authed -->
+          <a
+            class="tickbtn menu-btn add-btn auth-in"
+            href="artwork/create.html"
+            aria-label="add artwork"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-plus" /></svg>
+            <span class="lbl">add artwork</span>
+          </a>
+          <a
+            class="tickbtn menu-btn icon-btn"
+            href="collection.html#search"
+            aria-label="search the archive"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-search" /></svg>
+          </a>
+          <button
+            class="tickbtn menu-btn"
+            id="menu-open"
+            type="button"
+            aria-expanded="false"
+            aria-controls="curtain"
+          >
+            <svg class="i" aria-hidden="true"><use href="#i-menu" /></svg>
+            menu
+          </button>
+        </span>
+      </div>
+    </header>
+
+    <!-- ============ menu curtain ============ -->
+    <div class="curtain" id="curtain" aria-hidden="true">
+      <div class="curtain-top">
+        <span class="wordmark"
+          ><img class="naa" src="assets/img/naa-favicon-paper.svg" alt="" /><span
+            >nordic <em>art archive</em></span
+          ></span
+        >
+        <button class="tickbtn menu-btn" id="menu-close" type="button">
+          close
+          <svg class="i" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <nav aria-label="site menu">
+        <a href="index.html"
+          ><span class="num">01</span><span class="word">the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="collection.html"
+          ><span class="num">02</span><span class="word">all artworks</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a href="hands.html"
+          ><span class="num">03</span><span class="word">the hands of the archive</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="account/login.html"
+          ><span class="num">04</span><span class="word">log in</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-in" href="profile.html"
+          ><span class="num">04</span><span class="word">my works</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+        <a class="auth-out" href="account/login.html?from=create"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+          ><span class="tag tag--dark">owners</span></a
+        >
+        <a class="auth-in" href="artwork/create.html"
+          ><span class="num">05</span><span class="word">add artwork</span
+          ><svg class="i word-arrow" aria-hidden="true">
+            <use href="#i-arrow-right" /></svg
+        ></a>
+      </nav>
+      <div class="curtain-mark" aria-hidden="true">nordic <em>art archive</em></div>
+    </div>
+
+    <main id="main">
+      <!-- collection.js renders the empty / error block here (via ui.js) -->
+      <div id="collection-state"></div>
+
+      <!-- decorative collage of the works shown below — hidden from AT; the wall
+           rehangs itself on every visit (collection.js: drawCollage over the
+           fetched pool). Hidden in every state but is-ready — its images are data. -->
+      <section class="intro" id="intro" aria-hidden="true">
+        <div class="intro-stage">
+          <img alt="" data-sx="0.08" data-sy="-0.55" style="left: 9%; top: 5%; width: 200px" />
+          <img alt="" data-sx="0.12" data-sy="-0.5" style="left: 18%; top: 26%; width: 370px" />
+          <img alt="" data-sx="1.1" data-sy="0" style="left: 55%; top: 32%; width: 400px" />
+          <img alt="" data-sx="1.4" data-sy="-0.12" style="left: 79%; top: 4%; width: 190px" />
+          <img
+            class="ih"
+            alt=""
+            data-sx="0.05"
+            data-sy="-0.6"
+            style="left: -2%; top: 58%; width: 150px"
+          />
+          <img
+            class="ih"
+            alt=""
+            data-sx="1.5"
+            data-sy="0.06"
+            style="left: 91%; top: 64%; width: 200px"
+          />
+        </div>
+      </section>
+
+      <nav class="crumbs" aria-label="breadcrumb">
+        <ol>
+          <li><a href="index.html">the archive</a></li>
+          <li><span aria-current="page">all artworks</span></li>
+        </ol>
+      </nav>
+
+      <!-- build: the count comes from the API's meta.totalCount, ticking up on arrival -->
+      <section class="pagehead">
+        <div class="h1row">
+          <h1>all artworks<sup id="total"></sup></h1>
+          <span class="h1ink" aria-hidden="true">all artworks</span>
+        </div>
+        <p class="sub">The whole collection in one room — search it, filter it, wander it.</p>
+      </section>
+
+      <!-- build: the API has no search/filter endpoint — the pool is fetched once,
+           then every control here re-slices it client-side (collection.js) -->
+      <div class="toolbar">
+        <div class="search">
+          <label for="search">search the archive</label>
+          <span class="sbox">
+            <input
+              type="search"
+              id="search"
+              name="search"
+              placeholder="title or artist…"
+              autocomplete="off"
+            />
+          </span>
+        </div>
+        <!-- collection.js: every distinct medium value in the loaded pool, with counts -->
+        <div class="chips" role="group" aria-label="filter by medium" id="chips"></div>
+        <div class="views" role="group" aria-label="view as">
+          <button class="chip tickbtn" type="button" id="v-grid" aria-pressed="true">grid</button>
+          <button class="chip tickbtn" type="button" id="v-index" aria-pressed="false">
+            index
+          </button>
+        </div>
+      </div>
+
+      <div id="gridview">
+        <!-- chapter spine begins — the room walks 01 daylight → 02 dark → 03 ways back in -->
+        <div class="section-head">
+          <div>
+            <div class="kicker">01 — the daylight</div>
+            <h2 class="title">the open wall</h2>
+          </div>
+        </div>
+        <div class="chaos" id="light-grid" aria-busy="true"></div>
+
+        <!-- the threshold — the dark room's head, over-printed and soaking toward the body flip.
+             The home's grammar, the collection's own line. -->
+        <div class="threshold">
+          <div class="section-head">
+            <div>
+              <div class="kicker">02 — the dark room</div>
+              <div class="trow">
+                <h2 class="title">the wall goes dark</h2>
+                <span class="title lv-t" aria-hidden="true">the wall goes dark</span>
+              </div>
+            </div>
+          </div>
+          <div class="soakstack" id="soakstack" aria-hidden="true">
+            <div class="row">
+              <span class="lv a t2">the wall goes dark</span>
+              <span class="lv b t3">the wall goes dark</span>
+            </div>
+            <div class="row">
+              <span class="lv a t3">the wall goes dark</span>
+              <span class="lv b t4">the wall goes dark</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- sentinels — the body flip toggles between these -->
+        <div id="dark-start"></div>
+
+        <section class="inkstretch">
+          <div class="chaos darkzone" id="dark-grid"></div>
+        </section>
+
+        <!-- the lights come back on: the flip releases here, scroll-coupled —
+             the threshold's own mechanic, played in reverse on the way out -->
+        <div id="dark-end"></div>
+
+        <!-- everything load-more reveals hangs here.  New works arrive while the exit seam is still on screen (dark), and the walk brightens to white through them. darkzone keeps the captions synced to the flip in both directions. -->
+        <div class="chaos darkzone overflow" id="overflow-grid"></div>
+      </div>
+
+      <!-- the register: the same works read chronologically, right-aligned -->
+      <nav class="indexlist" id="indexview" aria-label="all artworks as a list" hidden>
+        <ol></ol>
+      </nav>
+
+      <!-- shown when search/filter finds nothing; a status region so the  zero-result is announced -->
+      <div class="empty" id="empty" role="status" aria-live="polite" hidden>
+        <p class="line">Nothing hangs here — <em>yet.</em></p>
+        <p class="hint">Try another word, or clear the filters.</p>
+        <button class="reset tickbtn" type="button" id="reset">clear search &amp; filters</button>
+      </div>
+
+      <!-- the list's own foot — count + load-more sit at the end of the works, on the ink while the dark room is alive -->
+      <div class="gridfoot">
+        <p class="count" role="status" aria-live="polite" tabindex="-1">
+          showing <span id="shown"></span> of <span id="of"></span> artworks
+          <span class="bar" aria-hidden="true"><i id="bar"></i></span>
+        </p>
+        <p class="shortfall" id="shortfall" hidden>Some works couldn't be loaded just now.</p>
+        <button class="loadmore tickbtn" type="button" id="loadmore">
+          load more
+          <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+        </button>
+      </div>
+
+      <!-- 03 — ways back in: the hands' orbit closes the walk after the list's foot. collection.js: top-5 artists by count as satellites around a random-work wanderer; a click filters the room to that artist. -->
+      <section class="byhand darkzone" id="byhand">
+        <div class="section-head">
+          <div>
+            <div class="kicker">03 — ways back in</div>
+            <h2 class="title">the hands behind the wall</h2>
+          </div>
+        </div>
+        <div class="hands" id="hands">
+          <!-- threads are built by collection.js — anchored to the plaque and the cards, drifting with the hands -->
+          <svg class="lines" aria-hidden="true"></svg>
+          <a class="wanderplaque" id="wanderplaque" href="collection.html">
+            <span class="lost">lost in the room?</span>
+            <span class="choose"
+              >let the archive choose
+              <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
+            ></span>
+          </a>
+        </div>
+        <div class="handsfoot r">
+          <button class="morehands" type="button" id="morehands">
+            …more hands — search them
+            <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+          </button>
+        </div>
+      </section>
+
+      <p class="status" id="collection-status" role="status" aria-live="polite"></p>
+    </main>
+
+    <footer class="fC">
+      <div class="fhead">
+        <div class="fin">fin — the exit</div>
+      </div>
+      <div class="fmid">
+        <nav class="fcols" aria-label="footer">
+          <div class="fcol">
+            <div class="fkick">01 — wander</div>
+            <a href="collection.html"
+              >all artworks
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="collection.html"
+              >by medium
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+            <a href="hands.html"
+              >the hands of the archive
+              <svg class="i" aria-hidden="true">
+                <use href="#i-arrow-right" /></svg
+            ></a>
+          </div>
+          <div class="fcol">
+            <div class="fkick">02 — account</div>
+            <span class="auth-out">
+              <a href="account/login.html"
+                >log in
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="account/register.html"
+                >register
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="account/login.html?from=create"
+                >add artwork <span class="tag tag--dark">owners</span></a
+              >
+            </span>
+            <span class="auth-in">
+              <a href="profile.html"
+                >my works
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <a href="artwork/create.html"
+                >add artwork
+                <svg class="i" aria-hidden="true">
+                  <use href="#i-arrow-right" /></svg
+              ></a>
+              <button class="logout" type="button">log out</button>
+            </span>
+          </div>
+        </nav>
+        <img class="stamp" src="assets/img/naa-stamp-sun-on-ink.svg" alt="" />
+      </div>
+      <div class="legal">© 2026 Nordic Art Archive — a fictional archive built for Noroff EP1</div>
+    </footer>
+
+    <noscript>
+      <p class="noscript-note">
+        The Nordic Art Archive loads its artworks with JavaScript. Please enable it to browse the
+        archive.
+      </p>
+    </noscript>
+
+    <script type="module" src="js/pages/collection.js"></script>
+  </body>
+</html>
