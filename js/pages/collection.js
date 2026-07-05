@@ -1,8 +1,6 @@
 // Collection / all artworks.
-// One resilient fetch, then everything is client-side: search, medium chips, the
-// grid/index toggle, and load-more all re-slice the same fetched pool (the API has
-// no search endpoint). Pure shaping lives in collection.js, state visuals in ui.js,
-// chrome behaviour in nav.js.
+// One resilient fetch, then everything is client-side: search, medium chips, the  grid/index toggle, and load-more all re-slice the same fetched pool (the API has no search endpoint).
+// Pure shaping lives in collection.js, state visuals in ui.js, chrome behaviour in nav.js.
 
 import { initNav } from "../nav.js";
 import { getAllArtworks } from "../api.js";
@@ -212,11 +210,9 @@ function renderTotal() {
   requestAnimationFrame(tick);
 }
 
-// every medium value, raw, with counts over the loaded usable pool (docs/09).
-// The live vocabulary runs to 20+ values, so the row keeps the prototype's
-// balance: all + the top five by count, with the long tail behind a quiet
-// "…N more mediums" fold (the orbit's own "…more hands" gesture). The active
-// chip is never folded away.
+// every medium value, raw, with counts over the loaded usable pool
+// The live vocabulary runs to 20+ values, so the row keeps the prototype's balance: all + the top five by count, with the long tail behind a quiet "…N more mediums" fold (the orbit's own "…more hands" gesture).
+// The active chip is never folded away.
 const TOP_CHIP_COUNT = 5;
 let chipsExpanded = false;
 
@@ -313,8 +309,7 @@ function renderHands() {
   }
 }
 
-// the wall rehangs itself: the six slots keep their composition, the works
-// filling them shuffle per visit (decorative — a dead image simply drops out)
+// the wall rehangs itself: the six slots keep their composition, the works filling them shuffle per visit
 function renderCollage() {
   const imgs = [...els.intro.querySelectorAll("img")];
   const drawn = drawCollage(state.pool, { slots: imgs.length });
@@ -341,8 +336,7 @@ function applyFilters({ keepReveal = false } = {}) {
   const visible = matches.slice(0, state.revealed);
 
   const none = matches.length === 0;
-  // re-write the line on the way in so the status region has a fresh mutation
-  // to announce (the count line — the page's other live region — hides with the foot)
+  // re-write the line on the way in so the status region has a fresh mutation to announce (the count line — the page's other live region — hides with the foot)
   if (none && els.empty.hidden) {
     const line = els.empty.querySelector(".line");
     line.replaceChildren("Nothing hangs here — ", Object.assign(el("em"), { textContent: "yet." }));
@@ -360,8 +354,7 @@ function applyFilters({ keepReveal = false } = {}) {
 
   renderIndex(sortByYearAsc(visible));
   renderFoot(visible.length, matches.length);
-  // the rise plays once, on arrival; filter re-renders and load-more slot works
-  // straight in (re-animating an already-seen wall on every keystroke reads as flicker)
+  // the rise plays once, on arrival; filter re-renders and load-more slot works straight in
   if (revealedOnce) {
     document.querySelectorAll(".r:not(.in)").forEach((node) => node.classList.add("in"));
   } else {
@@ -371,11 +364,9 @@ function applyFilters({ keepReveal = false } = {}) {
   onScrollFrame(); // re-judge the flip and soak against the new layout
 }
 
-// Load-more appends — it never rebuilds what's already hanging. A rebuild
-// destroys the browser's scroll anchor and re-mounts every image, which reads
-// as the page reloading under the visitor. INITIAL_REVEAL fills the daylight
-// and the designed dark hang exactly, so everything load-more reveals joins
-// the overflow past the exit seam.
+// Load-more appends — it never rebuilds what's already hanging.
+// A rebuild destroys the browser's scroll anchor and re-mounts every image, which reads as the page reloading under the visitor.
+// INITIAL_REVEAL fills the daylight and the designed dark hang exactly, so everything load-more reveals joins the overflow past the exit seam.
 function revealMore() {
   const matches = currentMatches();
   const already = Math.min(state.revealed, matches.length);
@@ -392,14 +383,11 @@ function revealMore() {
       fragment.appendChild(card(work, OVERFLOW_PATTERN[(start + index) % OVERFLOW_PATTERN.length]));
     });
     els.overflowGrid.appendChild(fragment);
-    observeReveals(); // the appended works rise as the visitor reaches them
-    // the walk continues from the seam: the new works begin where the eye was,
-    // and focus follows the content so keyboard/AT read on from the first new
-    // work instead of a button that just moved a screenful away
+    observeReveals(); // the appended works rise as the visitor reaches them the walk continues from the seam:
+    // the new works begin where the eye was, and focus follows the content so keyboard/AT read on from the first new work instead of a button that just moved a screenful away
     els.overflowGrid.children[start]?.querySelector("a")?.focus({ preventScroll: true });
   } else {
-    // the register stays chronological, so new works interleave — rebuild it
-    // (fixed-height rows, so the scroll position holds; focus keeps the foot)
+    // the register stays chronological, so new works interleave — rebuild it (fixed-height rows, so the scroll position holds; focus keeps the foot)
     renderIndex(sortByYearAsc(matches.slice(0, state.revealed)));
     observeReveals();
     if (els.loadmore.hidden) els.count.focus();
@@ -408,8 +396,7 @@ function revealMore() {
 }
 
 // the dark suite lives and dies together: threshold, room, and the orbit.
-// The orbit sits outside #gridview (after the list's foot), so it minds the
-// view and the no-results state itself.
+// The orbit sits outside #gridview (after the list's foot), so it minds the view and the no-results state itself.
 function updateDarkSuite(none) {
   const darkAlive = els.darkGrid.children.length > 0 && !none;
   els.threshold.hidden = !darkAlive;
@@ -507,8 +494,7 @@ function renderIndex(works) {
   els.indexList.replaceChildren(fragment);
 }
 
-// counts stay honest: X of Y where Y is what the current filter can actually
-// show from the loaded pool — never meta.totalCount (docs/09; the h1 owns that)
+// counts stay honest: X of Y where Y is what the current filter can actually show from the loaded pool — never meta.totalCount
 function renderFoot(shown, matching) {
   els.shown.textContent = String(shown);
   els.of.textContent = String(matching);
@@ -567,8 +553,8 @@ function initToolbar() {
   els.loadmore.addEventListener("click", revealMore);
 }
 
-// an unknown ?medium= deep link still applies (no chip lights up) — the honest
-// result is the no-results state, which offers the way out.
+// an unknown ?medium= deep link still applies (no chip lights up)
+// the honest result is the no-results state, which offers the way out.
 // The row re-renders so a folded-tail pick surfaces its chip and a stale pin drops.
 function setMedium(medium) {
   state.medium = medium;
@@ -601,13 +587,11 @@ function honourSearchHash() {
 /* ---- scroll-coupled motion ---- */
 
 function initScroll() {
-  // the body flip; the collection's one dark room ends the walk — the flip back
-  // happens behind the ink footer. Suppressed when filters kill the dark suite
-  // and in index view (the register never flips).
+  // the body flip; the collection's one dark room ends the walk — the flip back happens behind the ink footer.
+  // Suppressed when filters kill the dark suite and in index view (the register never flips).
   function flip() {
     if (!els.darkStart || !els.darkEnd) return;
-    // no flip outside the ready walk: not on the skeleton/error screens, not in
-    // index view (the register never flips), not when filters killed the dark room
+    // no flip outside the ready walk: not on the skeleton/error screens, not in index view, not when filters killed the dark room
     if (
       !els.body.classList.contains("is-ready") ||
       state.view === "index" ||
@@ -665,8 +649,7 @@ function initScroll() {
     stack.addEventListener("mouseleave", () => nudge(0));
   }
 
-  // the collage exits up and to the right from the first scroll, paced to the
-  // page head's rise (~0.8 viewport); the crumbs fade in the moment it moves
+  // the collage exits up and to the right from the first scroll, paced to the page head's rise (~0.8 viewport); the crumbs fade in the moment it moves
   const introImgs = els.intro ? [...els.intro.querySelectorAll("img")] : [];
   function introScrub() {
     if (prefersReducedMotion || !introImgs.length) return;
@@ -706,9 +689,9 @@ function initScroll() {
   scrubIntro = introScrub;
 }
 
-// on load the works arrive the way they will leave — the scroll exit played
-// backwards through the same placement math, all pieces at once (~2.2s, the
-// last small drift home slowly); max(landing, scroll) hands over mid-entrance
+// on load the works arrive the way they will leave
+// the scroll exit played backwards through the same placement math, all pieces at once (~2.2s, the last small drift home slowly);
+// max(landing, scroll) hands over mid-entrance
 function landCollage() {
   if (prefersReducedMotion) return;
   landP = 0.12;
@@ -723,7 +706,7 @@ function landCollage() {
   requestAnimationFrame(landIn);
 }
 
-/* ---- the hands' orbit threads (the profile room's engine) ---- */
+/* ---- the hands' orbit threads ---- */
 
 const threadState = { threads: [], drawn: false };
 
@@ -744,8 +727,7 @@ function buildThreads() {
     n.style.transform = "none";
   });
   const base = els.hands.getBoundingClientRect();
-  // bail on hidden / 0-size content (a filtered-out orbit) — anchoring threads
-  // on a 0-box floods NaN coords
+  // bail on hidden / 0-size content (a filtered-out orbit) — anchoring threads on a 0-box floods NaN coords
   if (getComputedStyle(svg).display === "none" || base.width === 0 || base.height === 0) {
     threadState.threads = [];
     svg.replaceChildren();
