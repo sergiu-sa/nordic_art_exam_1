@@ -1,0 +1,278 @@
+/* The hands' orbit the profile room's engine, reused on the collection's dark ground: paper name-plaques on breathing threads around a sun wanderer.
+   Positions (.node) and the drawn threads (.lines) are set by collection.js; this file owns the visuals only. Lives on .darkzone — greys reuse the home
+   dark-room set so captions clear AA on ink. */
+
+/* the orbit grounds itself — its own night band above the footer, independent of where the body flip stands */
+.byhand {
+  background: var(--ink);
+  color: var(--paper);
+  margin-top: 72px;
+  padding-bottom: 64px;
+}
+
+.byhand .section-head {
+  margin-top: 0;
+  padding-top: 44px;
+  border-top: 0;
+}
+
+.byhand .section-head .kicker {
+  color: var(--sun);
+}
+
+.hands {
+  position: relative;
+  height: 560px;
+  margin: 30px var(--gutter) 0;
+}
+
+.hands .lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hands .lines line {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1px;
+}
+
+.hands .lines circle {
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+/* the hub — the archive offering its hand: one random work */
+.wanderplaque {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  background: var(--sun);
+  color: var(--ink);
+  padding: 22px 26px 24px;
+  box-shadow: 0 30px 80px rgba(14, 14, 14, 0.85);
+  width: min(280px, 70vw);
+  text-align: center;
+  text-decoration: none;
+  transition: transform 0.35s ease;
+}
+
+.wanderplaque:hover {
+  transform: translate(-50%, -50%) translateY(-5px);
+}
+
+.wanderplaque:focus-visible {
+  /* ink ring on the sun ground — paper and signal both miss the 3:1 floor */
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+
+/* --ink (not --signal-deep): 10px text on the sun ground needs AA; the tick border is a UI element (3:1), so it keeps the accent colour */
+.wanderplaque .lost {
+  display: inline-block;
+  border-left: 2px solid var(--signal);
+  padding: 3px 0 3px 10px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.wanderplaque .choose {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.25;
+  transition: letter-spacing 0.3s;
+}
+
+.wanderplaque:hover .choose {
+  letter-spacing: 0.02em;
+}
+
+/* the hands — name plaques, slightly receded until the light finds them */
+.hands .node {
+  position: absolute;
+  z-index: 1;
+}
+
+.hcard {
+  background: var(--paper);
+  color: var(--ink);
+  border: 0;
+  cursor: pointer;
+  padding: 16px 20px 13px;
+  box-shadow: 0 22px 60px rgba(14, 14, 14, 0.75);
+  text-align: center;
+  opacity: 0.82;
+  transition:
+    transform 0.35s ease,
+    opacity 0.35s ease,
+    background-color 0.35s ease;
+}
+
+/* under the cursor the card turns sun — ink name on the sun ground */
+.hcard:hover,
+.hcard:focus-visible {
+  transform: translateY(-6px);
+  opacity: 1;
+  background: var(--sun);
+}
+
+.hcard:focus-visible {
+  /* ink ring: the focused card turns sun, where a paper ring reads 1.4:1 */
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+
+.hcard .hname {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.1;
+}
+
+.hcard:hover .hname,
+.hcard:focus-visible .hname {
+  font-style: italic;
+}
+
+/* --signal-deep (not --signal): the count needs AA on the white plaque */
+.hcard .hname sup {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--signal-deep);
+  font-style: normal;
+}
+
+.hcard .hgo {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--signal-deep);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.hcard:hover .hgo,
+.hcard:focus-visible .hgo {
+  opacity: 1;
+}
+
+/* --ink (not --signal-deep): both labels sit on the sun once the card lifts, where signal-deep reads 4.2:1 — the wanderer's .lost rule, carried over */
+.hcard:hover .hname sup,
+.hcard:focus-visible .hname sup,
+.hcard:hover .hgo,
+.hcard:focus-visible .hgo {
+  color: var(--ink);
+}
+
+.handsfoot {
+  padding: 26px var(--gutter) 0;
+  text-align: right;
+}
+
+.morehands {
+  display: block;
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--grey-300);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(16px, 2vw, 21px);
+  transition:
+    color 0.3s,
+    letter-spacing 0.3s;
+}
+
+.morehands:hover {
+  color: var(--sun);
+  letter-spacing: 0.03em;
+}
+
+.morehands:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+@media (max-width: 720px) {
+  .byhand {
+    padding-bottom: 40px;
+  }
+
+  /* the orbit becomes a hung row under the plaque (the profile page's collapse) */
+  .hands {
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 12px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+
+  .hands .lines {
+    display: none;
+  }
+
+  .wanderplaque {
+    position: static;
+    transform: none;
+    order: -1;
+    flex-basis: 100%;
+    margin: 0 auto 10px;
+  }
+
+  .wanderplaque:hover {
+    transform: none;
+  }
+
+  .hands .node {
+    position: static !important;
+  }
+
+  .hcard {
+    opacity: 1;
+  }
+
+  .hcard .hgo {
+    opacity: 1;
+  }
+
+  .handsfoot {
+    text-align: center;
+  }
+
+  .morehands {
+    margin: 0 auto;
+  }
+}
+
+/* motion off: no hover lift, no letter-spacing shift — the breathing drift is already JS-gated (collection.js), this only concerns our own transitions */
+@media (prefers-reduced-motion: reduce) {
+  .wanderplaque,
+  .wanderplaque .choose,
+  .hcard,
+  .morehands {
+    transition: none;
+  }
+
+  .wanderplaque:hover {
+    transform: translate(-50%, -50%);
+  }
+
+  .hcard:hover,
+  .hcard:focus-visible {
+    transform: none;
+  }
+}
