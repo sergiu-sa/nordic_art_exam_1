@@ -66,6 +66,13 @@ img {
   transform: none;
 }
 
+/* a keyboard focus never waits on the scroll reveal — the focused element shows at once, no fade */
+.r:focus-within {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
