@@ -46,6 +46,8 @@ Image scales inside the crop on hover/focus; the whole card is one link. */
   line-height: 1.4;
   margin-top: 9px;
   color: var(--grey-700);
+  /* 1s, the body flip's own pace: a caption that snaps while the ground is still mid-flight spends a beat at ~1:1 against it */
+  transition: color 1s ease;
 }
 
 .card figcaption .a {
@@ -54,6 +56,7 @@ Image scales inside the crop on hover/focus; the whole card is one link. */
   font-size: 10px;
   /* --grey-700 (not --grey-500): 10px meta on white must clear AA */
   color: var(--grey-700);
+  transition: color 1s ease;
 }
 
 .card figcaption .view {
@@ -98,6 +101,8 @@ body.dark .darkzone .card figcaption .a {
 
 @media (prefers-reduced-motion: reduce) {
   .card img,
+  .card figcaption,
+  .card figcaption .a,
   .card figcaption .view {
     transition: none;
   }
