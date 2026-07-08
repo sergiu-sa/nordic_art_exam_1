@@ -223,6 +223,8 @@ describe("renderError", () => {
     renderError(region, { message: "Couldn't load the feed.", sub: "Try again." });
     const block = region.querySelector(".statefail");
     expect(block.getAttribute("role")).toBe("alert");
+    // an h2: the state layer hides the page's h1, so the message must be a heading
+    expect(block.querySelector(".emsg").tagName).toBe("H2");
     expect(block.querySelector(".emsg").textContent).toBe("Couldn't load the feed.");
     expect(block.querySelector(".esub").textContent).toBe("Try again.");
     expect(block.querySelector(".ebtn")).toBeNull();
@@ -279,6 +281,7 @@ describe("renderEmpty", () => {
       action: { label: "browse all", href: "/index.html" },
     });
     const block = region.querySelector(".stateempty");
+    expect(block.querySelector(".emsg").tagName).toBe("H2");
     expect(block.querySelector(".emsg").textContent).toMatch(/Nothing hangs/);
     const link = block.querySelector(".ebtn");
     expect(link.tagName).toBe("A");

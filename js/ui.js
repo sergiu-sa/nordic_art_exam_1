@@ -155,7 +155,8 @@ export function renderSkeletonGrid(
 function stateBlock(doc, className, { message, sub }) {
   const block = doc.createElement("div");
   block.className = className;
-  const msg = doc.createElement("p");
+  // an h2, not a p: the state layer hides the page's h1, so heading-navigating screen-reader users need the message itself in the heading tree (the renderFormSuccess precedent)
+  const msg = doc.createElement("h2");
   msg.className = "emsg";
   msg.textContent = message;
   block.appendChild(msg);

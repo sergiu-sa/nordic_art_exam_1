@@ -52,6 +52,8 @@
 
 .emsg {
   font-family: var(--serif);
+  /* the message is an h2 (heading for the state view) — pin the weight so it doesn't pick up the UA's heading bold */
+  font-weight: 400;
   font-style: italic;
   font-size: clamp(24px, 4vw, 38px);
   line-height: 1.15;
