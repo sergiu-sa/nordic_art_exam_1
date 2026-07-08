@@ -8,7 +8,7 @@ import { initStudio } from "../studio.js";
 
 if (requireAuth({ from: "create" })) {
   document.querySelector(".guarded")?.classList.remove("guarded");
-  initNav();
+  initNav({ logoutTarget: "../index.html" });
 
   const wall = createWall(document.querySelector(".wall"));
   wall.update({ title: "", artist: "", year: "", medium: "" });

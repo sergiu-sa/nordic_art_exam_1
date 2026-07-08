@@ -5,10 +5,12 @@ import { isLoggedIn, logout } from "./auth.js";
 
 const OPEN_CLASS = "open";
 
-export function initNav(doc = document) {
+// logoutTarget: guarded pages (create/edit/own room) pass a path so logging out leaves the page instead of stranding owner-only content behind a dead session.
+export function initNav({ logoutTarget = "" } = {}) {
+  const doc = document;
   initCurtain(doc);
   initScrolled(doc);
-  initAuthState(doc);
+  initAuthState(doc, logoutTarget);
 }
 
 function initCurtain(doc) {
@@ -74,11 +76,16 @@ function initScrolled(doc) {
 
 // reflect the session in the chrome: body.authed swaps the owner nav in (add-artwork /my-works / log out) across the masthead, curtain, and footer.
 // Logout flips it back in place — feed/detail simply return to the logged-out chrome
-function initAuthState(doc) {
+function initAuthState(doc, logoutTarget) {
   applyAuthClass(doc);
   for (const btn of doc.querySelectorAll(".logout")) {
     btn.addEventListener("click", () => {
       logout();
+      // guarded content mustn't outlive the session — replace() so Back can't return to it
+      if (logoutTarget) {
+        window.location.replace(logoutTarget);
+        return;
+      }
       applyAuthClass(doc);
       // applyAuthClass hides the .auth-in subtree (display:none via body.authed), which would drop focus to document.body — a keyboard/switch user loses their place.
       // Move focus to the first focusable element inside the .auth-out partner that just became visible in the same region as the clicked button.
