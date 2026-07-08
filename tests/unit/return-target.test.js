@@ -31,11 +31,11 @@ describe("resolveReturn", () => {
     });
   });
 
-  it("does not auto-resume profile — it isn't a built page, so it falls to the default", () => {
+  it("resumes a profile bounce to the collector's room", () => {
     expect(resolveReturn({ from: "profile" })).toEqual({
-      href: "../index.html",
-      label: "into the archive",
-      resume: false,
+      href: "../profile.html",
+      label: "my works",
+      resume: true,
     });
   });
 

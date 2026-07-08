@@ -1,0 +1,704 @@
+/* The collector's room
+   Tokens, chrome, and the shared card/chaos/tickbtn/fbox/feedback kits live elsewhere. */
+
+/* ============ state layer ============
+   body.is-loading (default) → is-ready | is-empty | is-error, set by profile.js.
+   #room-state carries the skeleton or the failure block; the live sections step aside
+   until the room is ready. */
+#room-state {
+  display: none;
+  padding: 40px var(--gutter) 80px;
+}
+
+body.is-loading #room-state,
+body.is-error #room-state {
+  display: block;
+}
+
+body.is-loading #litwall,
+body.is-loading #hands-section,
+body.is-loading #rooms,
+body.is-error #litwall,
+body.is-error #hands-section,
+body.is-error #rooms {
+  display: none;
+}
+
+/* the empty room keeps the plaque + the band; the hang chapter drops */
+body.is-empty #hands-section,
+body.is-empty #colophon,
+body.is-empty #lit-hang {
+  display: none;
+}
+
+/* ============ the lit wall — the one ink moment ============ */
+.litwall {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 60px 0 96px;
+}
+
+.litwall::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(62% 64% at 32% 26%, rgba(255, 244, 214, 0.13), transparent 72%);
+}
+
+.litwall > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* the plaque  */
+.plaque {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 0 var(--gutter) 30px;
+}
+
+.plaque .face {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  background: var(--sun);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 46px;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.plaque .face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.plaque .here {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sun);
+  border-left: 2px solid var(--sun);
+  padding: 3px 0 3px 10px;
+  margin-bottom: 12px;
+}
+
+.plaque h1 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(40px, 7vw, 84px);
+  line-height: 0.95;
+}
+
+.plaque .bio {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--grey-300);
+  max-width: 460px;
+  margin-top: 12px;
+}
+
+/* the colophon — the archive-in-numbers, folded into the plaque  */
+.colophon {
+  margin: 0 var(--gutter) 54px;
+  font-family: var(--serif);
+  font-size: 18px;
+  letter-spacing: 0.01em;
+  color: var(--paper);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  padding-top: 18px;
+}
+
+.colophon sup {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--sun);
+}
+
+.litwall .chaos {
+  padding: 0 var(--gutter);
+}
+
+/* the litwall's ink is static,so the kit's  body.dark-gated caption pair never fires */
+.litwall .card figcaption {
+  color: var(--grey-300);
+}
+.litwall .card figcaption .a {
+  color: var(--grey-400);
+}
+
+/* the empty room — the plaque alone on the lit wall */
+.emptyroom {
+  margin: 8px var(--gutter) 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(24px, 4vw, 34px);
+}
+
+.emptyroom a {
+  color: var(--sun);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.emptyroom a:hover {
+  letter-spacing: 0.03em;
+}
+
+/* sun, not signal — this link sits on the litwall's ink ground */
+.emptyroom a:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 4px;
+}
+
+/* ============ 01 — the hands she keeps (white) ============ */
+.byhang {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 380px);
+  grid-template-areas: "hang rail";
+  gap: 0 clamp(30px, 5vw, 72px);
+  align-items: start;
+  padding: 0 var(--gutter);
+}
+
+.byhang .hang {
+  grid-area: hang;
+  padding: 0;
+  margin-top: 0;
+}
+
+.rail {
+  grid-area: rail;
+  position: sticky;
+  top: 84px;
+  text-align: right;
+}
+
+/* within-room search + the live "showing" status (in the rail); the field itself is styled by the shared .fbox kit (form.css) — only the label is this page's own */
+.roomsearch {
+  margin-bottom: 18px;
+}
+
+.roomsearch label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--grey-700);
+  margin-bottom: 8px;
+}
+
+.roomstatus {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--grey-700);
+  margin-bottom: 22px;
+}
+
+/* the by-artist register — the profile's own axis.
+Each row is a filter button for the hang beside it. */
+.handlist {
+  margin: 0;
+}
+
+.handlist button {
+  display: block;
+  width: 100%;
+  text-align: right;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1.2;
+  transition:
+    transform 0.35s ease,
+    color 0.3s ease,
+    opacity 0.35s ease;
+}
+
+.handlist button:hover {
+  transform: translateX(-12px);
+  font-style: italic;
+}
+
+.handlist button[aria-pressed="true"] {
+  font-style: italic;
+  color: var(--signal-deep);
+}
+
+.handlist button sup {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-style: normal;
+  color: var(--signal-deep);
+  margin-left: 4px;
+}
+
+.handlist button:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+.handlist .more {
+  margin-top: 14px;
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--grey-700);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.handlist .more:hover {
+  color: var(--signal);
+}
+
+.roomfoot {
+  margin: 44px var(--gutter) 0;
+}
+
+/* the whole-wall cards */
+.hang figure {
+  position: relative;
+  /* the spotlight needs a snappier transition than the .r reveal; scoped to the hang so only these cards retime */
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.2, 0.6, 0.2, 1),
+    filter 0.5s ease;
+}
+
+.hang figure .imgwrap {
+  transition: box-shadow 0.5s ease;
+}
+
+/* ── the rail spotlight — hovering or focusing an artist in the rail lights her works here and lowers the lights on the rest of the wall: emphasis by light, no new ground colour.*/
+.byhang.peeking .hang figure {
+  opacity: 0.32;
+  filter: grayscale(0.55);
+}
+
+.byhang.peeking .hang figure.lit {
+  opacity: 1;
+  filter: none;
+  transform: translateY(-5px) scale(1.03);
+  z-index: 2;
+}
+
+.byhang.peeking .hang figure.lit .imgwrap {
+  box-shadow: 0 18px 46px rgba(14, 14, 14, 0.28);
+}
+
+.byhang.peeking .hang figure.lit figcaption .a {
+  color: var(--signal-deep);
+}
+
+/* ── the reverse cue 
+Hovering or focusing a work lowers the lights on the rail so the hand that made it holds: the twin of "her works step forward".
+Light, not ink, so the names stay legible — they recede, they don't smear. */
+.byhang.railpeek .handlist button {
+  opacity: 0.3;
+}
+
+.byhang.railpeek .handlist button.cued {
+  opacity: 1;
+  color: var(--signal-deep);
+}
+
+/* owner tools — a sibling row beside the cardlink, never nested in it (own room only).
+   Edit links to the studio; delete confirms inline. */
+.owntools {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.owntools a,
+.owntools button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  background: none;
+  cursor: pointer;
+  color: var(--grey-700);
+  text-decoration: none;
+  font: inherit;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+
+.owntools a:hover {
+  color: var(--signal-deep);
+}
+
+.owntools .del:hover {
+  color: var(--signal-deep);
+}
+
+.owntools a:focus-visible,
+.owntools button:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.owntools .i {
+  width: 0.95em;
+  height: 0.95em;
+}
+
+/* the 44px tap-target floor — the visual chip stays small, the hit area grows */
+.owntools .tickbtn {
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+}
+
+/* the inline "take it down" confirm — no modal; roomy here, the facts-card's tight variant lives in artwork.css.
+Build toggles via [hidden], not a .on class — style only the visible state, the UA [hidden] default keeps it hidden until JS clears it. */
+.confirm {
+  margin-top: 10px;
+  border-left: 2px solid var(--signal-deep);
+  padding-left: 12px;
+}
+
+.confirm .ask {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--signal-deep);
+}
+
+.confirm .choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.confirm .choices button {
+  padding: 6px 14px;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: transparent;
+}
+
+.confirm .del-yes {
+  min-height: 44px;
+  color: var(--signal-deep);
+}
+
+.confirm .del-keep {
+  min-height: 44px;
+  color: var(--grey-700);
+}
+
+/* read-only (someone else's room): only the per-work owner tools disappear */
+body.readonly .owntools,
+body.readonly .confirm,
+body.readonly .roomfoot {
+  display: none;
+}
+
+/* ============ 02 — the rooms beyond (white) ============
+   the artwork page's walk-on band, room for room.
+   Every room gets the band: own, read-only, even empty — the walk never dead-ends. */
+.pn {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px clamp(24px, 4vw, 60px);
+  margin: 90px 0 0;
+  padding: 24px var(--gutter) 140px;
+  transition: background-color 0.7s ease;
+}
+
+.pn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--gutter);
+  right: var(--gutter);
+  border-top: 1px solid rgba(14, 14, 14, 0.25);
+}
+
+.pn:hover,
+.pn:focus-within {
+  background: var(--sun);
+}
+
+/* on the sun ground the active label's vermilion drops to deep */
+.pn:hover a:hover .lbl,
+.pn:focus-within a:focus-visible .lbl {
+  color: var(--signal-deep);
+}
+
+.pn a {
+  position: relative;
+  display: block;
+  max-width: 46%;
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.35s ease;
+}
+
+/* author display: block above wins over the UA [hidden] default by cascade origin */
+.pn-prev[hidden],
+.pn-next[hidden] {
+  display: none;
+}
+
+/* the active row steps toward its neighbour's room */
+.pn-prev:hover,
+.pn-prev:focus-visible {
+  transform: translateX(16px);
+}
+
+.pn-next:hover,
+.pn-next:focus-visible {
+  transform: translateX(-16px);
+}
+
+.pn-next {
+  text-align: right;
+}
+
+.pn .lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  transition: color 0.3s;
+}
+
+.pn-prev .lbl {
+  margin-left: 14px;
+}
+
+.pn-next .lbl {
+  margin-right: 14px;
+}
+
+.pn .ttl {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(26px, 3.5vw, 46px);
+  line-height: 1.12;
+}
+
+/* the neighbour's weight — the hands register's count sup */
+.pn .ttl sup {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 15px;
+  color: var(--signal-deep);
+  margin-left: 6px;
+}
+
+/* what they keep — their top artists, one derived serif line */
+.pn .keeps {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--grey-700);
+  transition: color 0.3s;
+}
+
+.pn:hover .keeps,
+.pn:focus-within .keeps {
+  color: var(--ink);
+}
+
+/* on the sun ground the sup joins the ink, like the keeps line */
+.pn:hover .ttl sup,
+.pn:focus-within .ttl sup {
+  color: var(--ink);
+}
+
+/* a look into the neighbour's room: on hover one of their works appears big in the band's centre gap, beside its row */
+.pn .pthumb {
+  position: absolute;
+  top: 4px;
+  height: 140px;
+  width: auto;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+  transform: scale(0.75);
+  transform-origin: center;
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.6, 0.2, 1),
+    opacity 0.35s ease;
+}
+
+/* base.css resets every <img> to display: block, which — like .pn a above — would win over the UA [hidden] default; guard the peek thumbnail the same way */
+.pthumb[hidden] {
+  display: none;
+}
+
+.pn-prev .pthumb {
+  left: calc(100% + 26px);
+}
+
+.pn-next .pthumb {
+  right: calc(100% + 26px);
+}
+
+.pn a:hover .ttl,
+.pn a:focus-visible .ttl {
+  font-style: italic;
+}
+
+.pn a:hover .pthumb,
+.pn a:focus-visible .pthumb {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pn a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 5px;
+}
+
+.pn .i {
+  flex: none;
+}
+
+/* the way back to the index, centred at the band's foot */
+.pn .allhands {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  max-width: none;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.pn .allhands:hover {
+  color: var(--signal-deep);
+}
+
+.pn .allhands .i {
+  vertical-align: -0.22em;
+}
+
+/* ---- tablet ---- */
+@media (max-width: 1000px) {
+  .plaque,
+  .colophon {
+    margin-left: var(--gutter);
+    margin-right: var(--gutter);
+  }
+
+  /* the rail drops above the hang */
+  .byhang {
+    grid-template-columns: 1fr;
+    grid-template-areas: "rail" "hang";
+  }
+
+  .rail {
+    position: static;
+    margin-bottom: 34px;
+  }
+}
+
+/* ---- mobile ---- */
+@media (max-width: 720px) {
+  .litwall {
+    padding: 40px 0 64px;
+  }
+
+  .plaque {
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .plaque .face {
+    width: 68px;
+    height: 68px;
+    font-size: 32px;
+  }
+
+  .colophon {
+    font-size: 15px;
+  }
+
+  .pn {
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 60px;
+    padding-bottom: 120px;
+  }
+
+  .pn a {
+    max-width: 100%;
+  }
+
+  /* no hover on touch — the neighbour's work stays on their wall */
+  .pn .pthumb {
+    display: none;
+  }
+
+  .pn-next {
+    align-self: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .handlist button {
+    transition: none;
+  }
+
+  .pn,
+  .pn a,
+  .pn .lbl,
+  .pn .keeps {
+    transition: none;
+  }
+
+  /* the neighbour's work appears instantly, no sweep */
+  .pn .pthumb {
+    transition: none;
+  }
+
+  /* the spotlight still reads (dim/lit), but instant — no lift, no fade */
+  .hang figure,
+  .hang figure .imgwrap {
+    transition: none;
+  }
+
+  .byhang.peeking .hang figure.lit {
+    transform: none;
+  }
+}
