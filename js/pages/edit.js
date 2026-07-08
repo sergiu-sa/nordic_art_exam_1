@@ -15,7 +15,7 @@ const id = new URLSearchParams(location.search).get("id") || undefined;
 
 if (requireAuth({ from: "edit", id })) {
   document.querySelector(".guarded")?.classList.remove("guarded");
-  initNav();
+  initNav({ logoutTarget: "../index.html" });
   start();
 }
 
