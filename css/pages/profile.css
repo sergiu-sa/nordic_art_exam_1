@@ -291,7 +291,8 @@ Each row is a filter button for the hang beside it. */
 
 /* ── the rail spotlight — hovering or focusing an artist in the rail lights her works here and lowers the lights on the rest of the wall: emphasis by light, no new ground colour.*/
 .byhang.peeking .hang figure {
-  opacity: 0.32;
+  /* 0.5, not lower: the resting captions must stay legible while the lights are down */
+  opacity: 0.5;
   filter: grayscale(0.55);
 }
 
@@ -314,7 +315,8 @@ Each row is a filter button for the hang beside it. */
 Hovering or focusing a work lowers the lights on the rail so the hand that made it holds: the twin of "her works step forward".
 Light, not ink, so the names stay legible — they recede, they don't smear. */
 .byhang.railpeek .handlist button {
-  opacity: 0.3;
+  /* 0.5, not lower: the receding names must stay legible while the cue is live */
+  opacity: 0.5;
 }
 
 .byhang.railpeek .handlist button.cued {
