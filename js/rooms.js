@@ -83,7 +83,7 @@ function roomSummary(room) {
 
 // Prev/next rooms in the register's own order, wrapping at the ends.
 // A name outside the register (your own empty room) stands at the seam: prev = the smallest room, next = the biggest.
-// When both sides resolve to one room it shows once (next); when there is no other room, both sides go quiet — the band keeps its "all the hands" exit either way.
+// When both sides resolve to one room it shows once (next); when there is no other room, both sides go quiet — the band keeps its all-artworks exit either way.
 export function enfiladeNeighbours(register = [], name) {
   if (!register.length) return { prev: null, next: null };
   const wanted = String(name ?? "").trim();

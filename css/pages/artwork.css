@@ -392,6 +392,7 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
   text-decoration: none;
   border-bottom: 1px solid rgba(192, 38, 11, 0.4);
   transition: border-color 0.3s;
+  font-size: 12px;
 }
 
 .credit a:hover {
