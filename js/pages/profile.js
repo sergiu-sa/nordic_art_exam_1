@@ -43,6 +43,11 @@ function initRoom() {
     clearTimeout(debounce);
     debounce = setTimeout(applyFilter, SEARCH_DEBOUNCE_MS);
   });
+  // the native clear (the field's ✕) fires "search" — apply at once
+  els.roomq.addEventListener("search", () => {
+    clearTimeout(debounce);
+    applyFilter();
+  });
   load();
 }
 
@@ -375,17 +380,40 @@ function renderHang() {
   observeReveals(els.hang);
 }
 
+// every hand is visible by default; folding to the top five is the opt-in
+// (the collection's chip fold, inverted). A selected tail hand never folds away.
+const TOP_HAND_COUNT = 5;
+let railExpanded = true;
+
 function renderRail() {
-  const { artists, rest } = artistRegister(works);
+  const { artists } = artistRegister(works, Infinity);
+  const top = artists.slice(0, TOP_HAND_COUNT);
+  const tail = artists.slice(TOP_HAND_COUNT);
+
   const fragment = document.createDocumentFragment();
   fragment.appendChild(railButton({ artist: "all works", key: "", count: null }));
-  for (const entry of artists) fragment.appendChild(railButton(entry));
-  if (rest > 0) {
-    const more = el("button", "more");
-    more.type = "button";
-    more.textContent = `… ${rest} more ${rest === 1 ? "hand" : "hands"} — search the room`;
-    more.addEventListener("click", () => els.roomq.focus());
-    fragment.appendChild(more);
+  for (const entry of top) fragment.appendChild(railButton(entry));
+  if (railExpanded) {
+    for (const entry of tail) fragment.appendChild(railButton(entry));
+  } else {
+    const active = tail.find((entry) => entry.key === activeArtistKey);
+    if (active) fragment.appendChild(railButton(active));
+  }
+
+  if (tail.length) {
+    const toggle = el("button", "more");
+    toggle.type = "button";
+    toggle.setAttribute("aria-expanded", String(railExpanded));
+    toggle.setAttribute("aria-controls", "hand-list");
+    toggle.textContent = railExpanded
+      ? "show fewer hands"
+      : `… ${tail.length} more ${tail.length === 1 ? "hand" : "hands"}`;
+    toggle.addEventListener("click", () => {
+      railExpanded = !railExpanded;
+      renderRail();
+      els.handList.querySelector(".more")?.focus();
+    });
+    fragment.appendChild(toggle);
   }
   els.handList.replaceChildren(fragment);
 }
@@ -403,9 +431,10 @@ function railButton({ artist, key, count }) {
   }
   btn.addEventListener("click", () => {
     activeArtistKey = key;
-    for (const b of els.handList.querySelectorAll("button[data-artist]")) {
-      b.setAttribute("aria-pressed", String(b === btn));
-    }
+    // re-render so a folded rail surfaces the pick and drops a stale pin — replacing
+    // the pressed node, so re-seat focus (the collection chips' idiom)
+    renderRail();
+    els.handList.querySelector(`button[data-artist="${CSS.escape(key)}"]`)?.focus();
     applyFilter();
   });
   return btn;
@@ -434,7 +463,13 @@ function applyFilter() {
 }
 
 // the two spotlights — rail hover lights the artist's works, work hover cues the rail — mutually exclusive, hover + focus, absent on touch by nature
+let spotlightsBound = false;
+
 function initSpotlights() {
+  // the container listeners survive re-renders (they read state per event) — bind once,
+  // even when error → retry → success runs initSpotlights again
+  if (spotlightsBound) return;
+  spotlightsBound = true;
   let peeked = "";
   let cued = "";
   const setPeek = (key) => {
@@ -495,6 +530,14 @@ function fillRoomLink(link, room) {
   link.querySelector(".keeps").textContent = room.keeps;
   const peek = link.querySelector(".pthumb");
   if (room.peek?.image?.url) {
+    // a well-shaped URL can still 404 — hide the peek rather than show a broken glyph
+    peek.addEventListener(
+      "error",
+      () => {
+        peek.hidden = true;
+      },
+      { once: true }
+    );
     peek.src = secureImageUrl(room.peek.image.url);
     peek.hidden = false;
   } else {
@@ -524,6 +567,7 @@ function observeReveals(container) {
 // module entry — everything above is declarations; nothing renders unguarded
 if (allowed) {
   document.querySelector(".guarded")?.classList.remove("guarded");
-  initNav();
+  // read-only rooms are public — logout flips in place; only the own room leaves
+  initNav({ logoutTarget: isOwnRoom ? "index.html" : "" });
   initRoom();
 }
