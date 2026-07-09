@@ -3,6 +3,7 @@
 
 import { initNav } from "../nav.js";
 import { initDoor } from "../account.js";
+import { hydrateDoor } from "../door-works.js";
 import { register } from "../auth.js";
 import { validateRegistration } from "../validation.js";
 import {
@@ -16,6 +17,7 @@ import {
 
 initNav();
 initDoor();
+hydrateDoor();
 
 const FIELDS = ["name", "email", "password"];
 const SUCCESS_MESSAGE = "Welcome to the archive.";

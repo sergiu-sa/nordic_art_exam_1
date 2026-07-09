@@ -4,6 +4,7 @@
 
 import { initNav, syncAuthState } from "../nav.js";
 import { initDoor } from "../account.js";
+import { hydrateDoor } from "../door-works.js";
 import { login, isLoggedIn } from "../auth.js";
 import { validateLogin } from "../validation.js";
 import { resolveReturn } from "../return-target.js";
@@ -18,6 +19,7 @@ import {
 
 initNav();
 initDoor();
+hydrateDoor();
 
 const FIELDS = ["email", "password"];
 const BAD_CREDENTIALS = "That key doesn't fit. Check your email or password.";
