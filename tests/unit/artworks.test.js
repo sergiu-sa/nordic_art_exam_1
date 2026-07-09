@@ -16,12 +16,16 @@ import {
   DARK_PATTERN,
   relatedArtworks,
   neighbours,
+  classifyOrientation,
   cropSet,
   introSegments,
   splitParagraphs,
   isShortDescription,
   isOwnArtwork,
   isArtworkId,
+  browsingPool,
+  ratiosById,
+  resolveCardRatio,
 } from "../../js/artworks.js";
 
 // A minimal usable artwork; override fields per case.
@@ -263,6 +267,93 @@ describe("assignPlacement", () => {
   });
 });
 
+describe("assignPlacement with ratios", () => {
+  const P = { col: 1, span: 2, mt: 0, ratio: 0.75 };
+  const L = { col: 4, span: 5, mt: 0, ratio: 1.6 };
+  const S = { col: 10, span: 3, mt: 0, ratio: 1.0 };
+  const work = (id) => ({ id });
+
+  it("keeps the legacy zip when no ratios are given", () => {
+    const items = [work("a"), work("b"), work("c"), work("d")];
+    expect(assignPlacement(items, [L, P, S])).toEqual([
+      { item: items[0], slot: L },
+      { item: items[1], slot: P },
+      { item: items[2], slot: S },
+      { item: items[3], slot: L },
+    ]);
+  });
+
+  it("matches works to slots of their orientation class", () => {
+    const items = [work("tall"), work("wide")];
+    const ratios = new Map([
+      ["tall", 0.7],
+      ["wide", 1.8],
+    ]);
+    expect(assignPlacement(items, [L, P], ratios)).toEqual([
+      { item: items[1], slot: L },
+      { item: items[0], slot: P },
+    ]);
+  });
+
+  it("keeps newest-first among same-class works", () => {
+    const items = [work("new"), work("old")];
+    const ratios = new Map([
+      ["new", 1.5],
+      ["old", 1.7],
+    ]);
+    const wideFirst = { ...L, ratio: 2.0 };
+    const wideSecond = { ...L, col: 8, ratio: 1.4 };
+    expect(assignPlacement(items, [wideFirst, wideSecond], ratios)).toEqual([
+      { item: items[0], slot: wideFirst },
+      { item: items[1], slot: wideSecond },
+    ]);
+  });
+
+  it("falls back to the least-bad crop when classes cannot match", () => {
+    const items = [work("a"), work("b")];
+    const ratios = new Map([
+      ["a", 0.95],
+      ["b", 1.1],
+    ]);
+    // both square; P(0.7) takes the closer 0.95, L(2.0) takes 1.1
+    const tall = { ...P, ratio: 0.7 };
+    const wide = { ...L, ratio: 2.0 };
+    expect(assignPlacement(items, [tall, wide], ratios)).toEqual([
+      { item: items[0], slot: tall },
+      { item: items[1], slot: wide },
+    ]);
+  });
+
+  it("fills unknown-ratio works into leftover slots in input order", () => {
+    const items = [work("unknown"), work("tall")];
+    const ratios = new Map([["tall", 0.7]]);
+    expect(assignPlacement(items, [P, L], ratios)).toEqual([
+      { item: items[1], slot: P },
+      { item: items[0], slot: L },
+    ]);
+  });
+
+  it("behaves like the legacy zip when every ratio is unknown", () => {
+    const items = [work("a"), work("b"), work("c")];
+    const ratios = new Map([["a", NaN]]);
+    expect(assignPlacement(items, [L, P, S], ratios)).toEqual(assignPlacement(items, [L, P, S]));
+  });
+
+  it("repeats the pattern in windows for long lists", () => {
+    const items = [work("a"), work("b"), work("c")];
+    const ratios = new Map([
+      ["a", 1.6],
+      ["b", 0.7],
+      ["c", 0.7],
+    ]);
+    // window 1 (a, b) matches classes; window 2 (c) restarts at slot 1
+    const result = assignPlacement(items, [L, P], ratios);
+    expect(result[0]).toEqual({ item: items[0], slot: L });
+    expect(result[1]).toEqual({ item: items[1], slot: P });
+    expect(result[2]).toEqual({ item: items[2], slot: L });
+  });
+});
+
 // ---- detail-page shaping ----
 
 describe("relatedArtworks", () => {
@@ -496,5 +587,123 @@ describe("isArtworkId", () => {
     expect(isArtworkId("")).toBe(false);
     expect(isArtworkId(null)).toBe(false);
     expect(isArtworkId(undefined)).toBe(false);
+  });
+});
+
+describe("classifyOrientation", () => {
+  it("classifies landscape from 1.2 up", () => {
+    expect(classifyOrientation(1.2)).toBe("landscape");
+    expect(classifyOrientation(2.4)).toBe("landscape");
+  });
+
+  it("classifies portrait at 1/1.2 and below", () => {
+    expect(classifyOrientation(1 / 1.2)).toBe("portrait");
+    expect(classifyOrientation(0.7)).toBe("portrait");
+  });
+
+  it("classifies square between the thresholds", () => {
+    expect(classifyOrientation(1)).toBe("square");
+    expect(classifyOrientation(1.19)).toBe("square");
+    expect(classifyOrientation(0.84)).toBe("square");
+  });
+
+  it("returns unknown for junk", () => {
+    expect(classifyOrientation()).toBe("unknown");
+    expect(classifyOrientation(0)).toBe("unknown");
+    expect(classifyOrientation(-2)).toBe("unknown");
+    expect(classifyOrientation("wide")).toBe("unknown");
+  });
+
+  it("keeps cropSet's square default for junk input", () => {
+    expect(cropSet("junk").orientation).toBe("square");
+  });
+});
+
+describe("browsingPool", () => {
+  const work = (id) => ({ id, image: { url: `https://x.test/${id}.jpg` } });
+  const dead = (ids) => new Map(ids.map((id) => [`https://x.test/${id}.jpg`, { dead: true }]));
+
+  it("passes alive works through untouched", () => {
+    const works = [work("a"), work("b")];
+    expect(browsingPool(works, new Map(), { min: 2 })).toEqual({ works, backfilled: 0 });
+  });
+
+  it("drops dead works when the floor holds", () => {
+    const works = [work("a"), work("b"), work("c")];
+    const { works: out, backfilled } = browsingPool(works, dead(["b"]), { min: 2 });
+    expect(out.map((w) => w.id)).toEqual(["a", "c"]);
+    expect(backfilled).toBe(0);
+  });
+
+  it("backfills dead works newest-first when alive dips under min", () => {
+    const works = [work("a"), work("b"), work("c")];
+    const { works: out, backfilled } = browsingPool(works, dead(["a", "b"]), { min: 2 });
+    expect(out.map((w) => w.id)).toEqual(["a", "c"]);
+    expect(backfilled).toBe(1);
+  });
+
+  it("upgrades http urls before looking results up", () => {
+    const insecure = { id: "a", image: { url: "http://x.test/a.jpg" } };
+    const results = new Map([["https://x.test/a.jpg", { dead: true }]]);
+    expect(browsingPool([insecure], results, { min: 0 }).works).toEqual([]);
+  });
+});
+
+describe("resolveCardRatio", () => {
+  it("uses the measured ratio when it is finite and positive", () => {
+    expect(resolveCardRatio(1.5, 1.0)).toBe(1.5);
+    expect(resolveCardRatio(0.75, 1.6)).toBe(0.75);
+  });
+
+  it("falls back to the slot ratio when the measurement is missing or junk", () => {
+    expect(resolveCardRatio(undefined, 1.6)).toBe(1.6);
+    expect(resolveCardRatio(NaN, 1.37)).toBe(1.37);
+    expect(resolveCardRatio(0, 1.2)).toBe(1.2);
+    expect(resolveCardRatio(-3, 2.1)).toBe(2.1);
+  });
+
+  it("clamps an extreme portrait so a card can't tower", () => {
+    expect(resolveCardRatio(0.4, 1.6)).toBe(0.6);
+  });
+
+  it("clamps an extreme panorama so a card can't turn to a sliver", () => {
+    expect(resolveCardRatio(5, 1.6)).toBe(2.5);
+  });
+
+  it("leaves the common 2:3 portrait and 3:2 landscape untouched", () => {
+    expect(resolveCardRatio(2 / 3, 1.6)).toBeCloseTo(0.667, 3);
+    expect(resolveCardRatio(1.5, 0.75)).toBe(1.5);
+  });
+
+  it("does not clamp the slot-ratio fallback (a designed value is trusted)", () => {
+    // no measurement → the designed slot ratio passes through even if outside the clamp
+    expect(resolveCardRatio(undefined, 2.6)).toBe(2.6);
+  });
+});
+
+describe("ratiosById", () => {
+  it("maps measured ratios by work id and skips the rest", () => {
+    const works = [
+      { id: "a", image: { url: "https://x.test/a.jpg" } },
+      { id: "b", image: { url: "https://x.test/b.jpg" } },
+      { id: "c", image: { url: "https://x.test/c.jpg" } },
+    ];
+    const results = new Map([
+      ["https://x.test/a.jpg", { ratio: 1.5 }],
+      ["https://x.test/b.jpg", { dead: true }],
+    ]);
+    const map = ratiosById(works, results);
+    expect(map.get("a")).toBe(1.5);
+    expect(map.has("b")).toBe(false);
+    expect(map.has("c")).toBe(false);
+  });
+
+  it("keys the lookup off the untrimmed secured url (callers must not pre-trim)", () => {
+    // a padded url: the result must be keyed exactly as ratiosById looks it up —
+    // secureImageUrl(work.image.url) with no trim — or a probed ratio is silently lost
+    const padded = "http://x.test/a.jpg ";
+    const works = [{ id: "a", image: { url: padded } }];
+    const results = new Map([[secureImageUrl(padded), { ratio: 1.5 }]]);
+    expect(ratiosById(works, results).get("a")).toBe(1.5);
   });
 });

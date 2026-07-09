@@ -139,10 +139,10 @@ export function deriveCounts(list = [], totalCount) {
 
 // The curated chaos placement — column start + span, a vertical offset, and a reserved aspect ratio per slot, hand-tuned.
 // Works fill the slots in order; the one-empty-column gap between neighbours is the hanging rule, kept by construction.
-// The wide slots (5, 4) are the feature moments.
+// The wide slots (5, 4) are the feature moments — slot 2 is the portrait home.
 export const FEED_PATTERN = [
   { col: 1, span: 5, mt: 0, ratio: 1.6 },
-  { col: 7, span: 2, mt: 48, ratio: 1.0 },
+  { col: 7, span: 2, mt: 48, ratio: 0.75 },
   { col: 10, span: 3, mt: 110, ratio: 1.37 },
   { col: 2, span: 3, mt: -16, ratio: 1.6 },
   { col: 6, span: 6, mt: 36, ratio: 2.1 },
@@ -152,17 +152,109 @@ export const FEED_PATTERN = [
 ];
 
 // The dark room; the first work pulls up across the flip seam (negative mt);
-// slot 4 is the room's wide feature.
+// slot 4 is the room's wide feature — slot 3 is the portrait home.
 export const DARK_PATTERN = [
   { col: 2, span: 4, mt: -180, ratio: 1.6 },
   { col: 7, span: 3, mt: 58, ratio: 1.47 },
-  { col: 11, span: 2, mt: 18, ratio: 1.24 },
+  { col: 11, span: 2, mt: 18, ratio: 0.78 },
   { col: 1, span: 6, mt: 30, ratio: 2.28 },
   { col: 8, span: 4, mt: 100, ratio: 1.85 },
 ];
 
-export function assignPlacement(items = [], pattern = FEED_PATTERN) {
-  return items.map((item, index) => ({ item, slot: pattern[index % pattern.length] }));
+// Works advance through the pattern in windows of pattern.length.
+// With measured ratios, slots take (in pattern order) the earliest work of their orientation class;
+// unmatched slots take the remaining work with the least-bad crop (|log(work/slot)|);
+// unmeasured works fill leftovers in input order.
+// Without ratios this is exactly the old zip, so un-probed callers change nothing.
+export function assignPlacement(items = [], pattern = FEED_PATTERN, ratios) {
+  if (!ratios?.size) {
+    return items.map((item, index) => ({ item, slot: pattern[index % pattern.length] }));
+  }
+  const placed = [];
+  for (let start = 0; start < items.length; start += pattern.length) {
+    placed.push(...assignWindow(items.slice(start, start + pattern.length), pattern, ratios));
+  }
+  return placed;
+}
+
+function assignWindow(windowItems, pattern, ratios) {
+  const slots = pattern.slice(0, windowItems.length);
+  const classes = windowItems.map((item) => classifyOrientation(ratios.get(item?.id)));
+  const taken = new Array(windowItems.length).fill(false);
+  const assignment = new Array(slots.length).fill(-1);
+
+  slots.forEach((slot, s) => {
+    const wanted = classifyOrientation(slot.ratio);
+    for (let w = 0; w < windowItems.length; w += 1) {
+      if (!taken[w] && classes[w] === wanted) {
+        assignment[s] = w;
+        taken[w] = true;
+        return;
+      }
+    }
+  });
+
+  slots.forEach((slot, s) => {
+    if (assignment[s] !== -1) return;
+    let best = -1;
+    let bestCost = Infinity;
+    for (let w = 0; w < windowItems.length; w += 1) {
+      if (taken[w] || classes[w] === "unknown") continue;
+      const cost = Math.abs(Math.log(ratios.get(windowItems[w].id) / slot.ratio));
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = w;
+      }
+    }
+    if (best !== -1) {
+      assignment[s] = best;
+      taken[best] = true;
+    }
+  });
+
+  slots.forEach((slot, s) => {
+    if (assignment[s] !== -1) return;
+    const w = taken.indexOf(false);
+    assignment[s] = w;
+    taken[w] = true;
+  });
+
+  return assignment.map((w, s) => ({ item: windowItems[w], slot: slots[s] }));
+}
+
+// Bridge from probe results (keyed by secured URL) to the pages' needs.
+const resultFor = (results, work) => results.get(secureImageUrl(String(work?.image?.url ?? "")));
+
+// The browsing pages hang works, not plates: dead works drop — unless that would break the caller's floor, where the newest dead works return.
+export function browsingPool(works = [], results = new Map(), { min = 0 } = {}) {
+  const isDead = (work) => resultFor(results, work)?.dead === true;
+  const alive = works.filter((work) => !isDead(work));
+  if (alive.length >= min) return { works: alive, backfilled: 0 };
+  const backfill = new Set(works.filter(isDead).slice(0, min - alive.length));
+  return {
+    works: works.filter((work) => !isDead(work) || backfill.has(work)),
+    backfilled: backfill.size,
+  };
+}
+
+export function ratiosById(works = [], results = new Map()) {
+  const map = new Map();
+  for (const work of works) {
+    const ratio = resultFor(results, work)?.ratio;
+    if (Number.isFinite(ratio) && ratio > 0) map.set(work.id, ratio);
+  }
+  return map;
+}
+
+// A card's box takes the work's own measured ratio so the image shows uncropped;
+// the clamp keeps a rare extreme from breaking the row.
+// An unmeasured work falls back to its slot's designed ratio, which is trusted as-is.
+const MIN_CARD_RATIO = 0.6;
+const MAX_CARD_RATIO = 2.5;
+
+export function resolveCardRatio(measured, slotRatio) {
+  if (!Number.isFinite(measured) || measured <= 0) return slotRatio;
+  return Math.min(MAX_CARD_RATIO, Math.max(MIN_CARD_RATIO, measured));
 }
 
 /* ---- detail-page shaping ---- */
@@ -255,13 +347,19 @@ const CROP_SETS = {
   ],
 };
 
-export function cropSet(ratio) {
+// Orientation classes shared by the detail crops and the grid assignment.
+// The thresholds are cropSet's originals: landscape from 1.2, portrait to 1/1.2.
+export function classifyOrientation(ratio) {
   const value = Number(ratio);
-  let orientation = "square";
-  if (Number.isFinite(value) && value > 0) {
-    if (value >= 1.2) orientation = "landscape";
-    else if (value <= 1 / 1.2) orientation = "portrait";
-  }
+  if (!Number.isFinite(value) || value <= 0) return "unknown";
+  if (value >= 1.2) return "landscape";
+  if (value <= 1 / 1.2) return "portrait";
+  return "square";
+}
+
+export function cropSet(ratio) {
+  const cls = classifyOrientation(ratio);
+  const orientation = cls === "unknown" ? "square" : cls;
   const windows = CROP_SETS[orientation].map((win, index) => ({
     ...win,
     caption: CROP_CAPTIONS[index],

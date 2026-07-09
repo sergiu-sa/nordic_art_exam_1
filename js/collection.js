@@ -108,12 +108,12 @@ export const DARK_PATTERN = [
   { col: 3, span: 5, mt: 48, ratio: 1.94 },
 ];
 
-// The overflow that grows with load-more: denser and calmer than the designed rooms — no feature slots, no seam pulls, modest offsets — so it repeats cleanly however far the pool grows.
+// The overflow that grows with load-more: denser and calmer than the designed rooms — no feature slots, no seam pulls, modest offsets — so it repeats cleanly however far the pool grows — slot 6 is the portrait home.
 export const OVERFLOW_PATTERN = [
   { col: 1, span: 4, mt: 0, ratio: 1.45 },
   { col: 6, span: 3, mt: 44, ratio: 1.2 },
   { col: 10, span: 3, mt: 90, ratio: 1.4 },
   { col: 2, span: 3, mt: 34, ratio: 1.3 },
   { col: 6, span: 4, mt: 60, ratio: 1.6 },
-  { col: 11, span: 2, mt: 24, ratio: 0.9 },
+  { col: 11, span: 2, mt: 24, ratio: 0.75 },
 ];
