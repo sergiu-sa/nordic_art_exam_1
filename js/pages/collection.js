@@ -20,6 +20,7 @@ import {
   assignPlacement,
   artworkAlt,
   secureImageUrl,
+  resolveCardRatio,
 } from "../artworks.js";
 import {
   filterArtworks,
@@ -32,9 +33,12 @@ import {
   DARK_PATTERN,
   OVERFLOW_PATTERN,
 } from "../collection.js";
+import { probeImages } from "../image-probe.js";
 
 const PAGE_SIZE = 12;
 const FETCH_TIMEOUT_MS = 15000; // a hung request falls to the error state
+const PROBE_TIMEOUT_MS = 5000;
+const PROBE_SPARES = 6;
 const INITIAL_REVEAL = LIGHT_PATTERN.length + DARK_PATTERN.length; // the walk's first hang
 const REVEAL_STEP = 12;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -98,6 +102,8 @@ const state = {
   medium: "all",
   view: "grid",
   revealed: INITIAL_REVEAL,
+  dead: new Set(),
+  ratios: new Map(),
 };
 
 let controller = null;
@@ -127,6 +133,21 @@ async function load() {
     state.loadedCount = data.length;
     state.totalCount = Number.isFinite(meta?.totalCount) ? meta.totalCount : state.pool.length;
     if (!state.pool.length) return showEmpty();
+    const preset = new URLSearchParams(location.search).get("medium");
+    const probeSet = [
+      ...new Set([
+        ...state.pool.slice(0, INITIAL_REVEAL + PROBE_SPARES),
+        ...(preset
+          ? filterArtworks(state.pool, { medium: preset }).slice(0, INITIAL_REVEAL + PROBE_SPARES)
+          : []),
+      ]),
+    ];
+    const probeResults = await probeImages(
+      probeSet.map((work) => secureImageUrl(work.image.url)),
+      { timeoutMs: PROBE_TIMEOUT_MS }
+    );
+    if (request !== controller) return; // a newer load owns the UI
+    noteProbeResults(probeSet, probeResults);
     renderPage();
     setState("ready");
     buildThreads(); // the orbit only has real boxes once the page is visible
@@ -192,15 +213,31 @@ function renderPage() {
   setStatus(els.status, { state: "idle", message: "" });
 }
 
+// The head counts the works a visitor can actually browse here — the usable pool minus what the probe found dead — so it agrees with the grid foot's "of Y".
+// meta.totalCount (state.totalCount) counts junk + dead records that never hang, so it would overclaim;
+// it stays reserved for the load-shortfall cue.
+function browsableTotal() {
+  return state.pool.length - state.dead.size;
+}
+
+// one settled name for AT — the sup glues onto the title and the tick would chatter
+function labelTotal(n) {
+  els.total.closest("h1").setAttribute("aria-label", `all artworks — ${n} works`);
+}
+
+function setTotal(n) {
+  els.total.textContent = String(n);
+  labelTotal(n);
+}
+
 // the count ticks up — "always growing"; instant under reduced motion
 function renderTotal() {
-  const end = state.totalCount;
-  // one settled name for AT — the sup glues onto the title and the tick would chatter
-  els.total.closest("h1").setAttribute("aria-label", `all artworks — ${end} in the archive`);
+  const end = browsableTotal();
   if (prefersReducedMotion) {
-    els.total.textContent = String(end);
+    setTotal(end);
     return;
   }
+  labelTotal(end); // the sup animates to end; the AT name carries the final value straight away
   const t0 = performance.now();
   const tick = (t) => {
     const p = Math.min((t - t0) / COUNT_UP_MS, 1);
@@ -326,8 +363,21 @@ function renderCollage() {
 
 /* ---- the one filter pass ---- */
 
+// Records a probe batch's verdicts against the works it covered;
+// dead ids drop from the walk, finite ratios feed resolveCardRatio so covers stop cropping.
+function noteProbeResults(works, results) {
+  for (const work of works) {
+    const result = results.get(secureImageUrl(work.image.url));
+    if (result?.dead) state.dead.add(work.id);
+    else if (Number.isFinite(result?.ratio)) state.ratios.set(work.id, result.ratio);
+  }
+}
+
+// state.pool stays whole — chips, counts, and the collage keep seeing everything;
+// only the walk itself drops what the probe found dead.
 function currentMatches() {
-  return filterArtworks(state.pool, { query: state.query, medium: state.medium });
+  const matches = filterArtworks(state.pool, { query: state.query, medium: state.medium });
+  return state.dead.size ? matches.filter((work) => !state.dead.has(work.id)) : matches;
 }
 
 function applyFilters({ keepReveal = false } = {}) {
@@ -367,21 +417,53 @@ function applyFilters({ keepReveal = false } = {}) {
 // Load-more appends — it never rebuilds what's already hanging.
 // A rebuild destroys the browser's scroll anchor and re-mounts every image, which reads as the page reloading under the visitor.
 // INITIAL_REVEAL fills the daylight and the designed dark hang exactly, so everything load-more reveals joins the overflow past the exit seam.
-function revealMore() {
-  const matches = currentMatches();
-  const already = Math.min(state.revealed, matches.length);
-  state.revealed += REVEAL_STEP;
-  const fresh = matches.slice(already, state.revealed);
-  if (!fresh.length) return;
+// The batch is probed before it hangs:
+// dead works drop from the walk, and the works that slide in for them arrive unprobed — plates, not holes.
+async function revealMore() {
+  // aria-disabled blocks the mouse but not a keyboard Enter on the still-focused button, so guard re-entry while a probe is already in flight
+  if (els.loadmore.getAttribute("aria-disabled") === "true") return;
+  const before = currentMatches();
+  const already = Math.min(state.revealed, before.length);
+  const batch = before.slice(already, already + REVEAL_STEP);
+  if (!batch.length) return;
 
+  const filterKey = `${state.query}|${state.medium}|${state.view}`;
+  // aria-disabled, not native disabled: disabling a focused button drops focus to <body>;
+  // aria-disabled keeps the button in the tab order through the probe
+  els.loadmore.setAttribute("aria-disabled", "true");
+  els.loadmore.setAttribute("aria-busy", "true");
+  setStatus(els.status, { state: "busy", message: "hanging more works…" });
+  let probeResults;
+  try {
+    probeResults = await probeImages(
+      batch.map((work) => secureImageUrl(work.image.url)),
+      { timeoutMs: PROBE_TIMEOUT_MS }
+    );
+  } finally {
+    // always return the trigger to an operable, quiet state — even if the probe threw
+    els.loadmore.removeAttribute("aria-disabled");
+    els.loadmore.removeAttribute("aria-busy");
+    setStatus(els.status, { state: "idle", message: "" });
+  }
+  noteProbeResults(batch, probeResults);
+  // a batch can reveal new dead works — keep the head in step with the foot
+  setTotal(browsableTotal());
+  if (filterKey !== `${state.query}|${state.medium}|${state.view}`) return; // a filter switch during the probe owns the render now
+
+  const matches = currentMatches();
+  state.revealed = already + REVEAL_STEP;
+  const fresh = matches.slice(already, state.revealed);
   renderFoot(Math.min(state.revealed, matches.length), matches.length);
+  if (!fresh.length) return;
 
   if (state.view === "grid") {
     const start = els.overflowGrid.children.length;
+    const offset = start % OVERFLOW_PATTERN.length;
+    const rotated = [...OVERFLOW_PATTERN.slice(offset), ...OVERFLOW_PATTERN.slice(0, offset)];
     const fragment = document.createDocumentFragment();
-    fresh.forEach((work, index) => {
-      fragment.appendChild(card(work, OVERFLOW_PATTERN[(start + index) % OVERFLOW_PATTERN.length]));
-    });
+    for (const { item, slot } of assignPlacement(fresh, rotated, state.ratios)) {
+      fragment.appendChild(card(item, slot, state.ratios.get(item.id)));
+    }
     els.overflowGrid.appendChild(fragment);
     observeReveals(); // the appended works rise as the visitor reaches them the walk continues from the seam:
     // the new works begin where the eye was, and focus follows the content so keyboard/AT read on from the first new work instead of a button that just moved a screenful away
@@ -410,17 +492,20 @@ function updateDarkSuite(none) {
 function renderGrid(container, works, pattern) {
   container.removeAttribute("aria-busy");
   const fragment = document.createDocumentFragment();
-  for (const { item, slot } of assignPlacement(works, pattern)) {
-    fragment.appendChild(card(item, slot));
+  for (const { item, slot } of assignPlacement(works, pattern, state.ratios)) {
+    fragment.appendChild(card(item, slot, state.ratios.get(item.id)));
   }
   container.replaceChildren(fragment);
 }
 
-function card(work, slot) {
+// The box takes the work's own measured ratio so the image shows uncropped;
+// resolveCardRatio clamps the extremes and falls back to the slot ratio when the probe couldn't measure.
+// The ratio is set before paint, so no layout shift.
+function card(work, slot, measuredRatio) {
   const figure = el("figure", "card r");
   figure.style.gridColumn = `${slot.col} / span ${slot.span}`;
   figure.style.marginTop = `${slot.mt}px`;
-  figure.style.setProperty("--card-ratio", String(slot.ratio));
+  figure.style.setProperty("--card-ratio", String(resolveCardRatio(measuredRatio, slot.ratio)));
 
   const link = el("a", "cardlink");
   link.href = artworkHref(work.id);

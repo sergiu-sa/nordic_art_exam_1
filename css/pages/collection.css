@@ -29,8 +29,10 @@ body.is-error #collection-state {
   display: block;
 }
 
-/* the loading status line is only meaningful while fetching */
-body:not(.is-loading) #collection-status {
+/* the status line shows — and so enters the a11y tree to announce — only while
+   busy: the initial fetch AND every load-more probe. Collapsed + silent when idle.
+   (Keying off .is-loading hid it during load-more, muting the announcement.) */
+#collection-status:not(.busy) {
   display: none;
 }
 
