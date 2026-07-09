@@ -7,7 +7,14 @@ import { getUserName } from "../session.js";
 import { initNav } from "../nav.js";
 import { initDelete } from "../delete-artwork.js";
 import { renderSkeletonGrid, renderError, errorToMessage, guardImage, setStatus } from "../ui.js";
-import { artworkAlt, secureImageUrl } from "../artworks.js";
+import {
+  artworkAlt,
+  secureImageUrl,
+  assignPlacement,
+  resolveCardRatio,
+  ratiosById,
+} from "../artworks.js";
+import { probeImages } from "../image-probe.js";
 import { formatYear } from "../format.js";
 import {
   collectorsRegister,
@@ -19,6 +26,7 @@ import {
 } from "../rooms.js";
 
 const FETCH_TIMEOUT_MS = 15000;
+const PROBE_TIMEOUT_MS = 5000;
 const SEARCH_DEBOUNCE_MS = 300;
 
 const params = new URLSearchParams(window.location.search);
@@ -74,6 +82,7 @@ const els = {
 let works = [];
 let register = [];
 let activeArtistKey = "";
+let roomRatios = new Map();
 
 function setPageState(state) {
   document.body.classList.remove("is-loading", "is-ready", "is-empty", "is-error");
@@ -98,6 +107,14 @@ async function load() {
     register = collectorsRegister(data);
     const name = isOwnRoom ? sessionName : ownerParam;
     works = roomWorks(register, name);
+    // no trim: the probe key must match ratiosById's untrimmed lookup (secureImageUrl(work.image.url));
+    // a padded URL just isn't probed, the same graceful fallback as any other unmeasured work. probeImages dedupes internally, so no Set here.
+    const probeUrls = works
+      .map((work) => String(work?.image?.url ?? ""))
+      .filter((url) => /^https?:\/\//i.test(url))
+      .map((url) => secureImageUrl(url));
+    const probeResults = await probeImages(probeUrls, { timeoutMs: PROBE_TIMEOUT_MS });
+    roomRatios = ratiosById(works, probeResults);
     renderRoom(name);
   } catch (error) {
     if (timedOut) {
@@ -230,7 +247,7 @@ function icon(name) {
   return svg;
 }
 
-function card(work, slot, { tools = false } = {}) {
+function card(work, slot, measuredRatio, { tools = false } = {}) {
   const figure = el("figure", "card r");
   figure.dataset.artist = String(work.artist ?? "")
     .trim()
@@ -240,7 +257,7 @@ function card(work, slot, { tools = false } = {}) {
   if (slot) {
     figure.style.gridColumn = `${slot.col} / span ${slot.span}`;
     figure.style.marginTop = `${slot.mt}px`;
-    figure.style.setProperty("--card-ratio", String(slot.ratio));
+    figure.style.setProperty("--card-ratio", String(resolveCardRatio(measuredRatio, slot.ratio)));
   }
 
   const link = el("a", "cardlink");
@@ -351,7 +368,7 @@ function removeWork(id, figure) {
 function renderLitwall() {
   const fragment = document.createDocumentFragment();
   for (const { work, slot } of weightedHang(works)) {
-    fragment.appendChild(card(work, slot));
+    fragment.appendChild(card(work, slot, roomRatios.get(work.id)));
   }
   els.litHang.replaceChildren(fragment);
   observeReveals(els.litHang);
@@ -364,18 +381,16 @@ const HANG_PATTERN = [
   { col: 1, span: 4, mt: 30, ratio: 1.6 },
   { col: 6, span: 3, mt: 18, ratio: 1.35 },
   { col: 9, span: 4, mt: 40, ratio: 1.5 },
-  { col: 2, span: 3, mt: 26, ratio: 1.2 },
+  { col: 2, span: 3, mt: 26, ratio: 0.78 },
   { col: 5, span: 5, mt: 30, ratio: 1.85 },
   { col: 10, span: 3, mt: 16, ratio: 1.4 },
 ];
 
 function renderHang() {
   const fragment = document.createDocumentFragment();
-  works.forEach((work, index) => {
-    fragment.appendChild(
-      card(work, HANG_PATTERN[index % HANG_PATTERN.length], { tools: isOwnRoom })
-    );
-  });
+  for (const { item, slot } of assignPlacement(works, HANG_PATTERN, roomRatios)) {
+    fragment.appendChild(card(item, slot, roomRatios.get(item.id), { tools: isOwnRoom }));
+  }
   els.hang.replaceChildren(fragment);
   observeReveals(els.hang);
 }
