@@ -146,7 +146,7 @@ function showError({ message, sub }) {
 /* ---- render ---- */
 
 function renderPage(gridPool, usable, ratios, meta) {
-  const { featured, feed, dark } = splitSections(gridPool);
+  const { featured, feed, dark } = splitSections(gridPool, { ratios });
   renderHero(featured);
   wireConnections(featured);
   renderGrid(els.grid, feed, FEED_PATTERN, ratios);
