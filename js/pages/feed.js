@@ -22,13 +22,21 @@ import {
   artworkAlt,
   mediumHref,
   secureImageUrl,
+  pickHero,
+  browsingPool,
+  ratiosById,
+  resolveCardRatio,
   FEED_PATTERN,
   DARK_PATTERN,
 } from "../artworks.js";
+import { probeImages } from "../image-probe.js";
 
 // The API can't sort and 500s on large/poisoned windows, so fetch the pool in small unsorted pages and order it newest-first in the browser (see js/api.js getAllArtworks + js/artworks.js sortByCreatedDesc).
 const FEED_PAGE_SIZE = 12;
 const FETCH_TIMEOUT_MS = 15000; // a hung request falls to the error state
+const PROBE_TIMEOUT_MS = 5000;
+const PROBE_SPARES = 6;
+const GRID_SLOTS = FEED_PATTERN.length + DARK_PATTERN.length; // hero rides on top
 const STATES = ["is-loading", "is-ready", "is-empty", "is-error"];
 const SVG_NS = "http://www.w3.org/2000/svg";
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -68,7 +76,9 @@ async function load() {
     });
     const usable = usableArtworks(sortByCreatedDesc(data));
     if (!usable.length) return showEmpty();
-    renderPage(usable, meta);
+    const { gridPool, ratios } = await probeWindow(usable);
+    if (request !== controller) return; // a newer load owns the UI
+    renderPage(gridPool, usable, ratios, meta);
     setState("ready");
     // observe only once the editorial sections are visible (is-ready); an IntersectionObserver set on display:none elements won't reliably re-fire
     observeReveals();
@@ -85,6 +95,21 @@ async function load() {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+// Probe only what can hang: the grid slots + the hero + spares. Dead works
+// drop and the spares slide in; the pure floor rule brings plates back before
+// the graded ≥12 breaks. The probe warms the browser cache for the render.
+async function probeWindow(usable) {
+  const hero = pickHero(usable);
+  const probeSet = usable.slice(0, GRID_SLOTS + 1 + PROBE_SPARES);
+  if (hero && !probeSet.includes(hero)) probeSet.push(hero);
+  const results = await probeImages(
+    probeSet.map((work) => secureImageUrl(work.image.url)),
+    { timeoutMs: PROBE_TIMEOUT_MS }
+  );
+  const { works } = browsingPool(probeSet, results, { min: GRID_SLOTS + 1 });
+  return { gridPool: works, ratios: ratiosById(works, results) };
 }
 
 /* ---- states ---- */
@@ -120,12 +145,12 @@ function showError({ message, sub }) {
 
 /* ---- render ---- */
 
-function renderPage(usable, meta) {
-  const { featured, feed, dark } = splitSections(usable);
+function renderPage(gridPool, usable, ratios, meta) {
+  const { featured, feed, dark } = splitSections(gridPool);
   renderHero(featured);
   wireConnections(featured);
-  renderGrid(els.grid, feed, FEED_PATTERN);
-  renderGrid(els.darkGrid, dark, DARK_PATTERN);
+  renderGrid(els.grid, feed, FEED_PATTERN, ratios);
+  renderGrid(els.darkGrid, dark, DARK_PATTERN, ratios);
   renderMediums(topMediums(usable, 5));
   renderRegister(deriveCounts(usable, meta?.totalCount));
   renderDrift([featured, ...feed, ...dark].filter(Boolean));
@@ -210,20 +235,23 @@ function wireConnections(featured) {
   }
 }
 
-function renderGrid(container, works, pattern) {
+function renderGrid(container, works, pattern, ratios) {
   container.removeAttribute("aria-busy");
   const fragment = document.createDocumentFragment();
-  for (const { item, slot } of assignPlacement(works, pattern)) {
-    fragment.appendChild(card(item, slot));
+  for (const { item, slot } of assignPlacement(works, pattern, ratios)) {
+    fragment.appendChild(card(item, slot, ratios?.get(item.id)));
   }
   container.replaceChildren(fragment);
 }
 
-function card(work, slot) {
+// The box takes the work's own measured ratio so the image shows uncropped;
+// resolveCardRatio clamps the extremes and falls back to the slot ratio when the
+// probe couldn't measure. The ratio is set before paint, so no layout shift.
+function card(work, slot, measuredRatio) {
   const figure = el("figure", "card r");
   figure.style.gridColumn = `${slot.col} / span ${slot.span}`;
   figure.style.marginTop = `${slot.mt}px`;
-  figure.style.setProperty("--card-ratio", String(slot.ratio));
+  figure.style.setProperty("--card-ratio", String(resolveCardRatio(measuredRatio, slot.ratio)));
 
   const link = el("a", "cardlink");
   link.href = artworkHref(work.id);
