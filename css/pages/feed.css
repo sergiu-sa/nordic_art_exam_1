@@ -472,8 +472,29 @@ body.dark .mediums .row sup {
     height: 64vh;
   }
 
-  .herorow {
-    bottom: 22px;
+  /* stack the title above the caption card in a bottom-anchored column, so a wide one-line title can't run behind the card;
+  the image drops out of flow behind them */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 0 var(--gutter) 22px;
+  }
+
+  .hero img {
+    position: absolute;
+    inset: 0;
+  }
+
+  .herorow,
+  .hero-card {
+    position: relative;
+    z-index: 1;
+    left: auto;
+    right: auto;
+    bottom: auto;
   }
 
   .hero-title {
@@ -488,7 +509,6 @@ body.dark .mediums .row sup {
   }
 
   .hero-card {
-    bottom: 16px;
     max-width: 178px;
     padding: 12px 14px;
   }
@@ -538,8 +558,13 @@ body.dark .mediums .row sup {
     margin-top: 16px;
   }
 
+  /* the ink echoes turn off on mobile like the hero's twin; the crisp "always growing" stays, so the exit reads clean */
+  .yellow .corner .cecho {
+    display: none;
+  }
+
   .yellow .endline {
-    padding-top: 60px;
+    padding-top: 44px;
     flex-direction: column;
     align-items: flex-start;
     gap: 26px;
