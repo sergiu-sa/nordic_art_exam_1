@@ -61,6 +61,42 @@ function initCurtain(doc) {
   nav?.addEventListener("click", (event) => {
     if (event.target.closest("a")) close({ restoreFocus: false });
   });
+
+  initPreview(curtain, nav, openBtn);
+}
+
+// The destination preview: a hovered/focused browse link fades its screenshot into the right void.
+// Wide-desktop + hover only
+function initPreview(curtain, nav, openBtn) {
+  const preview = curtain.querySelector(".menu-preview");
+  if (!preview) return;
+  const shots = [...preview.querySelectorAll(".mp")];
+  const wideHover = window.matchMedia("(min-width: 1024px) and (hover: hover)");
+  let loaded = false;
+
+  function loadShots() {
+    if (loaded || !wideHover.matches) return;
+    loaded = true;
+    for (const img of shots) if (img.dataset.src) img.src = img.dataset.src;
+  }
+  function show(key) {
+    for (const img of shots) img.classList.toggle("show", img.dataset.prev === key);
+  }
+  function hide() {
+    for (const img of shots) img.classList.remove("show");
+  }
+
+  for (const link of nav?.querySelectorAll("a[data-prev]") ?? []) {
+    const { prev } = link.dataset;
+    link.addEventListener("pointerenter", () => show(prev));
+    // :focus-visible so the curtain's programmatic focus-on-open (mouse) doesn't flash a preview; real keyboard focus still drives it.
+    link.addEventListener("focus", () => {
+      if (link.matches(":focus-visible")) show(prev);
+    });
+    link.addEventListener("pointerleave", hide);
+    link.addEventListener("blur", hide);
+  }
+  openBtn.addEventListener("click", loadShots);
 }
 
 function initScrolled(doc) {

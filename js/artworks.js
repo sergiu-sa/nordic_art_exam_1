@@ -73,14 +73,20 @@ function heroScore(work) {
 }
 
 // The highest-scoring work; ties keep the input order (newest-first), so a linear max is deliberate over sort (stable, no engine-dependent ordering).
-export function pickHero(list = []) {
+// With measured ratios, portraits are excluded first — the hero is the widest band on the site, so a portrait in the cover box crops.
+// An all-portrait pool falls back to the unrestricted best.
+export function pickHero(list = [], { ratios } = {}) {
   if (!list.length) return null;
-  let best = list[0];
+  const eligible = ratios?.size
+    ? list.filter((work) => classifyOrientation(ratios.get(work?.id)) !== "portrait")
+    : list;
+  const pool = eligible.length ? eligible : list;
+  let best = pool[0];
   let bestScore = heroScore(best);
-  for (let i = 1; i < list.length; i += 1) {
-    const score = heroScore(list[i]);
+  for (let i = 1; i < pool.length; i += 1) {
+    const score = heroScore(pool[i]);
     if (score > bestScore) {
-      best = list[i];
+      best = pool[i];
       bestScore = score;
     }
   }
@@ -92,9 +98,9 @@ export function pickHero(list = []) {
 // reads designed whether the pool holds 14 works or 140.
 export function splitSections(
   list = [],
-  { feedCount = FEED_PATTERN.length, darkCount = DARK_PATTERN.length } = {}
+  { feedCount = FEED_PATTERN.length, darkCount = DARK_PATTERN.length, ratios } = {}
 ) {
-  const featured = pickHero(list);
+  const featured = pickHero(list, { ratios });
   const rest = featured ? list.filter((work) => work !== featured) : [...list];
   return {
     featured,

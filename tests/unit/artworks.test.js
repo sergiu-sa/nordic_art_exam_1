@@ -207,6 +207,60 @@ describe("pickHero", () => {
   });
 });
 
+describe("pickHero with ratios", () => {
+  it("prefers a non-portrait work even when a portrait scores higher", () => {
+    const portrait = art({
+      id: "p",
+      title: "Tall Study of Pines",
+      description: "A written study long enough to read as a real catalogue entry here now.",
+      year: 2020,
+    });
+    const landscape = art({ id: "l", title: "Wide Fjord", year: 2019 });
+    const ratios = new Map([
+      ["p", 0.7],
+      ["l", 1.8],
+    ]);
+    expect(pickHero([portrait, landscape], { ratios })).toBe(landscape);
+  });
+
+  it("falls back to the best score when every work is portrait", () => {
+    const a = art({ id: "a", title: "First Study" });
+    const b = art({
+      id: "b",
+      title: "Second Study Bigger",
+      description: "A long enough written description to read like a real catalogue entry now.",
+      year: 2001,
+    });
+    const ratios = new Map([
+      ["a", 0.6],
+      ["b", 0.7],
+    ]);
+    expect(pickHero([a, b], { ratios })).toBe(b);
+  });
+
+  it("is unchanged when ratios are empty or absent", () => {
+    const junk = art({ id: "j", title: "dill", artist: "dill", medium: "dill", description: "" });
+    const real = art({
+      id: "r",
+      title: "Bergen Harbour",
+      description: "A long-enough written description that reads as a real catalogue entry.",
+      year: 2023,
+    });
+    expect(pickHero([junk, real], { ratios: new Map() })).toBe(real);
+    expect(pickHero([junk, real])).toBe(real);
+  });
+
+  it("splitSections threads ratios into the featured pick", () => {
+    const portrait = art({ id: "p", title: "Tall One", year: 2020 });
+    const landscape = art({ id: "l", title: "Wide One", year: 2019 });
+    const ratios = new Map([
+      ["p", 0.7],
+      ["l", 1.8],
+    ]);
+    expect(splitSections([portrait, landscape], { ratios }).featured).toBe(landscape);
+  });
+});
+
 describe("topMediums", () => {
   it("counts raw values, ranks by count, breaks ties alphabetically", () => {
     const list = [

@@ -106,9 +106,10 @@
       </div>
       <div class="mainrow">
         <span class="lead"
-          ><a href="collection.html"
-            >all artworks <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg></a
-        ></span>
+          ><a href="index.html"
+            ><svg class="i" aria-hidden="true"><use href="#i-arrow-left" /></svg> the archive</a
+          ></span
+        >
         <a class="wordmark" href="index.html"
           ><img class="naa" src="assets/img/naa-favicon-paper.svg" alt="" /><span
             >nordic <em>art archive</em></span
@@ -159,38 +160,45 @@
         </button>
       </div>
       <nav aria-label="site menu">
-        <a href="index.html"
+        <a data-prev="home" href="index.html"
           ><span class="num">01</span><span class="word">the archive</span
           ><svg class="i word-arrow" aria-hidden="true">
             <use href="#i-arrow-right" /></svg
         ></a>
-        <a href="collection.html"
+        <a data-prev="all_artworks" href="collection.html"
           ><span class="num">02</span><span class="word">all artworks</span
           ><svg class="i word-arrow" aria-hidden="true">
             <use href="#i-arrow-right" /></svg
         ></a>
-        <a class="auth-out" href="account/login.html"
+        <a data-prev="login" class="auth-out" href="account/login.html"
           ><span class="num">03</span><span class="word">log in</span
           ><svg class="i word-arrow" aria-hidden="true">
             <use href="#i-arrow-right" /></svg
         ></a>
-        <a class="auth-in" href="profile.html"
+        <a data-prev="profile" class="auth-in" href="profile.html"
           ><span class="num">03</span><span class="word">my works</span
           ><svg class="i word-arrow" aria-hidden="true">
             <use href="#i-arrow-right" /></svg
         ></a>
-        <a class="auth-out" href="account/login.html?from=create"
+        <a data-prev="create" class="auth-out" href="account/login.html?from=create"
           ><span class="num">04</span><span class="word">add artwork</span
           ><svg class="i word-arrow" aria-hidden="true">
             <use href="#i-arrow-right" /></svg
           ><span class="tag tag--dark">owners</span></a
         >
-        <a class="auth-in" href="artwork/create.html"
+        <a data-prev="create" class="auth-in" href="artwork/create.html"
           ><span class="num">04</span><span class="word">add artwork</span
           ><svg class="i word-arrow" aria-hidden="true">
             <use href="#i-arrow-right" /></svg
         ></a>
       </nav>
+      <div class="menu-preview" aria-hidden="true">
+        <img class="mp" data-prev="home" data-src="assets/nav/home.webp" alt="" />
+        <img class="mp" data-prev="all_artworks" data-src="assets/nav/all_artworks.webp" alt="" />
+        <img class="mp" data-prev="login" data-src="assets/nav/login.webp" alt="" />
+        <img class="mp" data-prev="profile" data-src="assets/nav/profile.webp" alt="" />
+        <img class="mp" data-prev="create" data-src="assets/nav/create.webp" alt="" />
+      </div>
       <div class="curtain-mark" aria-hidden="true">nordic <em>art archive</em></div>
     </div>
 
