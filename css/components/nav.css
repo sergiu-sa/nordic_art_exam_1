@@ -46,6 +46,11 @@ Defaults to 0 — invisible until a page drives it. */
     padding 0.45s ease;
 }
 
+/* keep each auth label whole so "log in" never breaks to "log / in" on narrow mobile */
+.utility .auth {
+  white-space: nowrap;
+}
+
 .utility .auth a {
   color: var(--paper);
   text-decoration: none;

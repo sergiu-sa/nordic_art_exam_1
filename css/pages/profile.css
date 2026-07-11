@@ -61,6 +61,11 @@ body.is-empty #lit-hang {
   margin: 0 var(--gutter) 30px;
 }
 
+/* let the text column shrink below its content so a long single-token username wraps */
+.plaque .who {
+  min-width: 0;
+}
+
 .plaque .face {
   flex: none;
   width: 96px;
@@ -100,6 +105,7 @@ body.is-empty #lit-hang {
   font-weight: 400;
   font-size: clamp(40px, 7vw, 84px);
   line-height: 0.95;
+  overflow-wrap: break-word;
 }
 
 .plaque .bio {
@@ -650,6 +656,12 @@ body.readonly .roomfoot {
     width: 68px;
     height: 68px;
     font-size: 32px;
+  }
+
+  /* a touch smaller so a typical username fits one line beside the plaque;
+     longer ones wrap (min-width:0 + overflow-wrap) rather than clip */
+  .plaque h1 {
+    font-size: clamp(30px, 9vw, 40px);
   }
 
   .colophon {
