@@ -75,10 +75,19 @@ async function onSubmit(event) {
   }
 }
 
-// After client validation a 400 is almost always a duplicate/invalid email, so put it on the field;
-// everything else (network/500/...) is a form-level status message.
+// A 400 after client validation is almost always a duplicate; everything else' (network/500/...) is a form-level status message.
 function handleFailure(error) {
   if (error?.status === 400) {
+    // The API answers a taken NAME or a taken EMAIL with the same pathless "Profile already exists"
+    // it never says which (and names collide often in the shared pool), so name both instead of blaming the email field alone.
+    if (isDuplicateProfile(error)) {
+      setStatus(status, {
+        state: "error",
+        message: "That name or email is already in the archive. Try another one.",
+      });
+      form.elements.name.focus();
+      return;
+    }
     const field = fieldFromError(error);
     setStatus(status, { state: "idle", message: "" });
     setFieldError(form.elements[field], error.message || "Check this field and try again.");
@@ -89,6 +98,11 @@ function handleFailure(error) {
   if (!result.ignore) {
     setStatus(status, { state: "error", message: result.message || GENERIC_ERROR });
   }
+}
+
+// Noroff returns a pathless "Profile already exists" for a duplicate name or email.
+function isDuplicateProfile(error) {
+  return /already exists/i.test(error?.message ?? "");
 }
 
 function fieldFromError(error) {
