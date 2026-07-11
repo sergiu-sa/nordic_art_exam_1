@@ -1,17 +1,5 @@
 /* The studio — create + edit page styles: Shared by artwork/create.html + artwork/edit.html. */
 
-/* the entrance rise — declared here because the studio pages do not load artwork.css */
-@keyframes riseup {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* ============ page head ============ */
 
 .studiohead {
@@ -92,7 +80,7 @@
   width: 100%;
   padding: 24px 0 0;
   margin-bottom: 4px;
-  border-top: 1px solid rgba(14, 14, 14, 0.25);
+  border-top: 1px solid var(--rule);
   font-size: 11.5px;
   letter-spacing: 0.24em;
   text-transform: uppercase;

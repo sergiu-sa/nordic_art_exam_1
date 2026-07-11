@@ -4,18 +4,6 @@ Page-specific sections: Tokens, base, chrome, and the shared atoms live in their
 This file owns only what's unique to the detail page.
 The page has NO body flip — the connections block tints the SECTION to ink (the home's flip mechanic painted on one section), so colour stays a block. */
 
-/* the orchestrated entrance for the white entry block; the work appears when the fetch resolves (is-ready), so the rise plays as the entry is shown */
-@keyframes riseup {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* Page states — loading / not found / error  */
 .wallstate {
   display: none;
@@ -427,7 +415,7 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
   justify-content: space-between;
   gap: 18px;
   padding: 9px 0;
-  border-top: 1px solid rgba(14, 14, 14, 0.15);
+  border-top: 1px solid var(--rule-soft);
 }
 
 .facts .row:first-child {
@@ -453,7 +441,7 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
 /* owner tools — visible only when authed + the owner */
 .facts .owner {
   margin-top: 18px;
-  border-top: 1px solid rgba(14, 14, 14, 0.15);
+  border-top: 1px solid var(--rule-soft);
   padding-top: 16px;
 }
 
@@ -719,7 +707,7 @@ The constellation on a section that tints to ink while the visitor is inside it 
   top: 0;
   left: var(--gutter);
   right: var(--gutter);
-  border-top: 1px solid rgba(14, 14, 14, 0.25);
+  border-top: 1px solid var(--rule);
 }
 
 .pn:hover,

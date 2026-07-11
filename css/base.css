@@ -73,6 +73,19 @@ img {
   transition: none;
 }
 
+/* Entrance rise — an element fades up into place (the detail-page entry, the studio wall/form).
+   Shared here so the detail + studio pages, which don't co-load, don't each declare it. */
+@keyframes riseup {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
