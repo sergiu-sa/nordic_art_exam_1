@@ -239,7 +239,7 @@
 .doorcard .swap {
   margin-top: 24px;
   padding-top: 18px;
-  border-top: 1px solid rgba(14, 14, 14, 0.15);
+  border-top: 1px solid var(--rule-soft);
   font-size: 12px;
   color: var(--grey-600);
   display: flex;

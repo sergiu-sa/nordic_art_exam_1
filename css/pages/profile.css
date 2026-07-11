@@ -452,7 +452,7 @@ body.readonly .roomfoot {
   top: 0;
   left: var(--gutter);
   right: var(--gutter);
-  border-top: 1px solid rgba(14, 14, 14, 0.25);
+  border-top: 1px solid var(--rule);
 }
 
 .pn:hover,

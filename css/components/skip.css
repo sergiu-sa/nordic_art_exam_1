@@ -6,7 +6,7 @@
   left: 12px;
   z-index: 100;
   background: var(--ink);
-  color: #fff;
+  color: var(--paper);
   padding: 10px 18px;
   font-size: 12px;
   letter-spacing: 0.08em;
