@@ -5,6 +5,7 @@
 import { secureImageUrl } from "./artworks.js";
 
 const IMAGE_DEBOUNCE_MS = 600;
+const PROBE_TIMEOUT_MS = 5000; // a stalling host never fires load/error; cap the wait like image-probe.js
 
 // trim + force https (the live site blocks mixed-content http images)
 const cleanUrl = (raw) => secureImageUrl(String(raw || "").trim());
@@ -93,8 +94,14 @@ export function createWall(wallEl) {
     const token = ++probeToken;
     return new Promise((resolve) => {
       const test = new Image();
-      test.onload = () => resolve(token === probeToken);
-      test.onerror = () => resolve(false);
+      let timer = null;
+      const done = (result) => {
+        clearTimeout(timer);
+        resolve(result);
+      };
+      timer = setTimeout(() => done(false), PROBE_TIMEOUT_MS); // a stalled host resolves not-live
+      test.onload = () => done(token === probeToken);
+      test.onerror = () => done(false);
       test.src = src;
     });
   }

@@ -3,7 +3,6 @@
 :root {
   --ink: #0e0e0e;
   --paper: #ffffff;
-  --night: #0a0a0a;
   --signal: #e63312;
   --signal-deep: #c0260b;
   --sun: #ffd43a;
@@ -12,6 +11,9 @@
   --grey-500: #777777;
   --grey-400: #999999;
   --grey-300: #dddddd;
+  /* the hairline rule above each numbered chapter — translucent ink */
+  --rule: rgba(14, 14, 14, 0.25);
+  --rule-soft: rgba(14, 14, 14, 0.15);
   --serif: "Newsreader", serif;
   --sans: "Archivo", sans-serif;
   --gutter: 38px;

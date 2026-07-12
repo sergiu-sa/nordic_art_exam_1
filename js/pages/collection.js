@@ -4,23 +4,14 @@
 
 import { initNav } from "../nav.js";
 import { getAllArtworks } from "../api.js";
-import {
-  errorToMessage,
-  renderSkeletonGrid,
-  renderError,
-  renderEmpty,
-  guardImage,
-  setStatus,
-} from "../ui.js";
+import { errorToMessage, renderSkeletonGrid, renderError, renderEmpty, setStatus } from "../ui.js";
 import { formatYear } from "../format.js";
 import {
   sortByCreatedDesc,
   usableArtworks,
   topMediums,
   assignPlacement,
-  artworkAlt,
   secureImageUrl,
-  resolveCardRatio,
 } from "../artworks.js";
 import {
   filterArtworks,
@@ -34,6 +25,7 @@ import {
   OVERFLOW_PATTERN,
 } from "../collection.js";
 import { probeImages } from "../image-probe.js";
+import { el, icon, renderCard } from "../dom.js";
 
 const PAGE_SIZE = 12;
 const FETCH_TIMEOUT_MS = 15000; // a hung request falls to the error state
@@ -462,7 +454,7 @@ async function revealMore() {
     const rotated = [...OVERFLOW_PATTERN.slice(offset), ...OVERFLOW_PATTERN.slice(0, offset)];
     const fragment = document.createDocumentFragment();
     for (const { item, slot } of assignPlacement(fresh, rotated, state.ratios)) {
-      fragment.appendChild(card(item, slot, state.ratios.get(item.id)));
+      fragment.appendChild(renderCard(item, slot, state.ratios.get(item.id), artworkHref(item.id)));
     }
     els.overflowGrid.appendChild(fragment);
     observeReveals(); // the appended works rise as the visitor reaches them the walk continues from the seam:
@@ -493,49 +485,9 @@ function renderGrid(container, works, pattern) {
   container.removeAttribute("aria-busy");
   const fragment = document.createDocumentFragment();
   for (const { item, slot } of assignPlacement(works, pattern, state.ratios)) {
-    fragment.appendChild(card(item, slot, state.ratios.get(item.id)));
+    fragment.appendChild(renderCard(item, slot, state.ratios.get(item.id), artworkHref(item.id)));
   }
   container.replaceChildren(fragment);
-}
-
-// The box takes the work's own measured ratio so the image shows uncropped;
-// resolveCardRatio clamps the extremes and falls back to the slot ratio when the probe couldn't measure.
-// The ratio is set before paint, so no layout shift.
-function card(work, slot, measuredRatio) {
-  const figure = el("figure", "card r");
-  figure.style.gridColumn = `${slot.col} / span ${slot.span}`;
-  figure.style.marginTop = `${slot.mt}px`;
-  figure.style.setProperty("--card-ratio", String(resolveCardRatio(measuredRatio, slot.ratio)));
-
-  const link = el("a", "cardlink");
-  link.href = artworkHref(work.id);
-
-  const wrap = el("div", "imgwrap");
-  const img = new Image();
-  img.src = secureImageUrl(work.image.url);
-  img.alt = artworkAlt(work);
-  img.loading = "lazy";
-  guardImage(img, { title: work.title });
-  wrap.appendChild(img);
-
-  const caption = el("figcaption");
-  const year = formatYear(work.year);
-  caption.append(year ? `${work.title}, ${year}` : work.title, el("br"));
-  const byline = el("span", "a");
-  byline.textContent = [work.artist, work.medium]
-    .map((value) => String(value ?? "").trim())
-    .filter(Boolean)
-    .join(" · ");
-  caption.append(byline, el("br"));
-  const view = el("span", "view");
-  view.setAttribute("aria-hidden", "true");
-  view.append("view artwork ", icon("i-arrow-right"));
-  caption.append(view);
-
-  // the link wraps only the image; figcaption stays a direct child of the figure
-  link.appendChild(wrap);
-  figure.append(link, caption);
-  return figure;
 }
 
 // the register: the same works read chronologically, oldest first
@@ -557,9 +509,9 @@ function renderIndex(works) {
     );
     const thumb = new Image();
     thumb.className = "ithumb";
+    thumb.loading = "lazy";
     thumb.src = secureImageUrl(work.image.url);
     thumb.alt = "";
-    thumb.loading = "lazy";
     thumb.addEventListener("error", () => thumb.remove(), { once: true });
     row.appendChild(thumb);
     const title = el("span", "it");
@@ -935,22 +887,6 @@ function observeReveals() {
 }
 
 /* ---- dom helpers ---- */
-
-function el(tag, className) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  return node;
-}
-
-function icon(id) {
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("class", "i");
-  svg.setAttribute("aria-hidden", "true");
-  const use = document.createElementNS(SVG_NS, "use");
-  use.setAttribute("href", `#${id}`);
-  svg.appendChild(use);
-  return svg;
-}
 
 function artworkHref(id) {
   return `artwork/index.html?id=${encodeURIComponent(id)}`;

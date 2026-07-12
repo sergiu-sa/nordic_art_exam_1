@@ -111,9 +111,13 @@ export function initStudio({ form, status, submit, wall, mode, imgLive = false, 
 
   async function onSubmit(event) {
     event.preventDefault();
+    if (submitBtn?.disabled) return; // a submit is already in flight
     const values = readValues(form);
     const clean = showFieldErrors(form, validateArtworkForm(values));
     if (!clean) return; // showFieldErrors focused the first invalid field
+
+    // Lock submit before the async image probe so a second click can't re-enter.
+    if (submitBtn) submitBtn.disabled = true;
 
     // If an image URL is given, it must reach a live image before we save.
     if (values.imageUrl && !imageLive) {
@@ -124,12 +128,12 @@ export function initStudio({ form, status, submit, wall, mode, imgLive = false, 
         setStatus(status, { state: "idle", message: "" });
         setFieldError(form.elements.imageUrl, IMAGE_UNREACHABLE);
         form.elements.imageUrl.focus();
+        if (submitBtn) submitBtn.disabled = false; // let the user fix the URL and retry
         return;
       }
     }
 
     if (relog) relog.style.display = "none";
-    if (submitBtn) submitBtn.disabled = true;
     setStatus(status, {
       state: "busy",
       message: mode === "edit" ? "rewriting the label…" : "hanging…",

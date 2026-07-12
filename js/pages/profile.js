@@ -24,6 +24,7 @@ import {
   enfiladeNeighbours,
   weightedHang,
 } from "../rooms.js";
+import { el, icon } from "../dom.js";
 
 const FETCH_TIMEOUT_MS = 15000;
 const PROBE_TIMEOUT_MS = 5000;
@@ -231,22 +232,6 @@ function colophonNodes(parts) {
   return nodes;
 }
 
-function el(tag, className) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  return node;
-}
-
-function icon(name) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "i");
-  svg.setAttribute("aria-hidden", "true");
-  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-  use.setAttribute("href", `#${name}`);
-  svg.appendChild(use);
-  return svg;
-}
-
 function card(work, slot, measuredRatio, { tools = false } = {}) {
   const figure = el("figure", "card r");
   figure.dataset.artist = String(work.artist ?? "")
@@ -264,9 +249,9 @@ function card(work, slot, measuredRatio, { tools = false } = {}) {
   link.href = `artwork/index.html?id=${encodeURIComponent(work.id)}`;
   const wrap = el("div", "imgwrap");
   const img = new Image();
+  img.loading = "lazy";
   img.src = secureImageUrl(work.image?.url ?? "");
   img.alt = artworkAlt(work);
-  img.loading = "lazy";
   guardImage(img, { title: work.title });
   wrap.appendChild(img);
   link.appendChild(wrap);

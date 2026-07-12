@@ -23,6 +23,7 @@ import {
 } from "../artworks.js";
 import { isLoggedIn } from "../auth.js";
 import { getUserName } from "../session.js";
+import { el, icon } from "../dom.js";
 
 const LIST_LIMIT = 100; // the shared pool is a single page; one fetch covers related + neighbours + more
 const FETCH_TIMEOUT_MS = 15000;
@@ -324,10 +325,10 @@ function renderCrops(work, url, ratio) {
     wrap.style.aspectRatio = String(win.aspectRatio);
 
     const img = new Image();
+    img.loading = "lazy";
     img.src = url;
     // positional, never overclaiming a second work; the main image carries the descriptive alt, so the close-ups note only where they sit
     img.alt = `${alt} — ${win.caption}`;
-    img.loading = "lazy";
     img.style.transformOrigin = `${win.originX}% ${win.originY}%`;
     wrap.appendChild(img);
 
@@ -438,9 +439,9 @@ function prevNextLink(work, direction) {
 
   const thumb = new Image();
   thumb.className = "pthumb";
+  thumb.loading = "lazy";
   thumb.src = secureImageUrl(work.image?.url);
   thumb.alt = "";
-  thumb.loading = "lazy";
   thumb.addEventListener("error", () => thumb.remove(), { once: true });
 
   // prev reads title → label → thumb; next mirrors it (thumb → label → title)
@@ -460,9 +461,9 @@ function card(work, slot) {
 
   const wrap = el("div", "imgwrap");
   const img = new Image();
+  img.loading = "lazy";
   img.src = secureImageUrl(work.image?.url);
   img.alt = artworkAlt(work);
-  img.loading = "lazy";
   guardImage(img, { title: work.title });
   wrap.appendChild(img);
 
@@ -493,9 +494,9 @@ function initConstellation(work, related) {
   hub.style.top = `${HUB_SLOT.top}%`;
   if (!els.body.classList.contains("is-noimage")) {
     const hubImg = new Image();
+    hubImg.loading = "lazy";
     hubImg.src = secureImageUrl(work.image?.url);
     hubImg.alt = "";
-    hubImg.loading = "lazy";
     hubImg.style.width = `${HUB_SLOT.width}px`;
     hub.appendChild(hubImg);
   }
@@ -512,9 +513,9 @@ function initConstellation(work, related) {
     const link = el("a");
     link.href = artworkHref(entry.work.id);
     const img = new Image();
+    img.loading = "lazy";
     img.src = secureImageUrl(entry.work.image?.url);
     img.alt = artworkAlt(entry.work);
-    img.loading = "lazy";
     img.style.width = `${slot.width}px`;
     const why = el("span", "why");
     why.textContent = entry.reason;
@@ -844,12 +845,6 @@ function crumbCurrent(label) {
 
 /* ---- dom helpers ---- */
 
-function el(tag, className) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  return node;
-}
-
 // inline display, not the [hidden] attribute: .chaos/.pn set an author `display` that outranks the UA [hidden] rule,
 // so the attribute alone wouldn't hide them
 function hide(node) {
@@ -858,16 +853,6 @@ function hide(node) {
 
 function show(node) {
   node.style.display = "";
-}
-
-function icon(symbolId) {
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("class", "i");
-  svg.setAttribute("aria-hidden", "true");
-  const use = document.createElementNS(SVG_NS, "use");
-  use.setAttribute("href", `#${symbolId}`);
-  svg.appendChild(use);
-  return svg;
 }
 
 function artworkHref(workId) {

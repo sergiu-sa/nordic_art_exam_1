@@ -138,7 +138,7 @@ body.is-empty #lit-hang {
   padding: 0 var(--gutter);
 }
 
-/* the litwall's ink is static,so the kit's  body.dark-gated caption pair never fires */
+/* the litwall is always dark, so its caption takes the dark-room greys directly (no body-flip gate) */
 .litwall .card figcaption {
   color: var(--grey-300);
 }
@@ -452,7 +452,7 @@ body.readonly .roomfoot {
   top: 0;
   left: var(--gutter);
   right: var(--gutter);
-  border-top: 1px solid rgba(14, 14, 14, 0.25);
+  border-top: 1px solid var(--rule);
 }
 
 .pn:hover,

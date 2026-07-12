@@ -210,7 +210,7 @@ body:not(.is-ready) .crumbs {
   gap: 28px 40px;
   margin: 56px var(--gutter) 76px;
   padding-top: 24px;
-  border-top: 1px solid rgba(14, 14, 14, 0.25);
+  border-top: 1px solid var(--rule);
 }
 
 .search label {
