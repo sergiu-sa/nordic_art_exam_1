@@ -3,14 +3,7 @@
 
 import { initNav } from "../nav.js";
 import { getAllArtworks } from "../api.js";
-import {
-  errorToMessage,
-  renderSkeletonGrid,
-  renderError,
-  renderEmpty,
-  guardImage,
-  setStatus,
-} from "../ui.js";
+import { errorToMessage, renderSkeletonGrid, renderError, renderEmpty, setStatus } from "../ui.js";
 import { formatYear } from "../format.js";
 import {
   sortByCreatedDesc,
@@ -25,11 +18,11 @@ import {
   pickHero,
   browsingPool,
   ratiosById,
-  resolveCardRatio,
   FEED_PATTERN,
   DARK_PATTERN,
 } from "../artworks.js";
 import { probeImages } from "../image-probe.js";
+import { el, icon, renderCard } from "../dom.js";
 
 // The API can't sort and 500s on large/poisoned windows, so fetch the pool in small unsorted pages and order it newest-first in the browser (see js/api.js getAllArtworks + js/artworks.js sortByCreatedDesc).
 const FEED_PAGE_SIZE = 12;
@@ -38,7 +31,6 @@ const PROBE_TIMEOUT_MS = 5000;
 const PROBE_SPARES = 6;
 const GRID_SLOTS = FEED_PATTERN.length + DARK_PATTERN.length; // hero rides on top
 const STATES = ["is-loading", "is-ready", "is-empty", "is-error"];
-const SVG_NS = "http://www.w3.org/2000/svg";
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const els = {
@@ -239,50 +231,9 @@ function renderGrid(container, works, pattern, ratios) {
   container.removeAttribute("aria-busy");
   const fragment = document.createDocumentFragment();
   for (const { item, slot } of assignPlacement(works, pattern, ratios)) {
-    fragment.appendChild(card(item, slot, ratios?.get(item.id)));
+    fragment.appendChild(renderCard(item, slot, ratios?.get(item.id), artworkHref(item.id)));
   }
   container.replaceChildren(fragment);
-}
-
-// The box takes the work's own measured ratio so the image shows uncropped;
-// resolveCardRatio clamps the extremes and falls back to the slot ratio when the
-// probe couldn't measure. The ratio is set before paint, so no layout shift.
-function card(work, slot, measuredRatio) {
-  const figure = el("figure", "card r");
-  figure.style.gridColumn = `${slot.col} / span ${slot.span}`;
-  figure.style.marginTop = `${slot.mt}px`;
-  figure.style.setProperty("--card-ratio", String(resolveCardRatio(measuredRatio, slot.ratio)));
-
-  const link = el("a", "cardlink");
-  link.href = artworkHref(work.id);
-
-  const wrap = el("div", "imgwrap");
-  const img = new Image();
-  img.src = secureImageUrl(work.image.url);
-  img.alt = artworkAlt(work);
-  img.loading = "lazy";
-  guardImage(img, { title: work.title });
-  wrap.appendChild(img);
-
-  const caption = el("figcaption");
-  const year = formatYear(work.year);
-  caption.append(year ? `${work.title}, ${year}` : work.title, el("br"));
-  const byline = el("span", "a");
-  byline.textContent = [work.artist, work.medium]
-    .map((value) => String(value ?? "").trim())
-    .filter(Boolean)
-    .join(" · ");
-  caption.append(byline, el("br"));
-  const view = el("span", "view");
-  view.setAttribute("aria-hidden", "true");
-  view.append("view artwork ", icon("i-arrow-right"));
-  caption.append(view);
-
-  // the link wraps only the image;
-  // the figcaption is a direct child of the figure (spec-valid — figcaption can't live inside the <a>)
-  link.appendChild(wrap);
-  figure.append(link, caption);
-  return figure;
 }
 
 function renderMediums(rows) {
@@ -295,9 +246,9 @@ function renderMediums(rows) {
     const url = sample?.image?.url;
     if (url) {
       const img = new Image();
+      img.loading = "lazy";
       img.src = secureImageUrl(url);
       img.alt = "";
-      img.loading = "lazy";
       img.addEventListener("error", () => img.remove(), { once: true });
       row.appendChild(img);
     }
@@ -341,9 +292,9 @@ function renderDrift(works) {
   [...works, ...works].forEach((work, index) => {
     const size = DRIFT_SIZES[index % DRIFT_SIZES.length];
     const img = new Image();
+    img.loading = "lazy";
     img.src = secureImageUrl(work.image.url);
     img.alt = "";
-    img.loading = "lazy";
     img.style.height = `${size.h}px`;
     img.style.marginTop = `${size.mt}px`;
     img.addEventListener("error", () => img.remove(), { once: true });
@@ -471,22 +422,6 @@ function initScroll() {
 }
 
 /* ---- dom helpers ---- */
-
-function el(tag, className) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  return node;
-}
-
-function icon(id) {
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("class", "i");
-  svg.setAttribute("aria-hidden", "true");
-  const use = document.createElementNS(SVG_NS, "use");
-  use.setAttribute("href", `#${id}`);
-  svg.appendChild(use);
-  return svg;
-}
 
 function artworkHref(id) {
   return `artwork/index.html?id=${encodeURIComponent(id)}`;
