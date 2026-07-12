@@ -224,6 +224,7 @@ Each row is a filter button for the hang beside it. */
 .handlist button {
   display: block;
   width: 100%;
+  min-height: 44px; /* 44px tap-target floor — the short rows fell under it */
   text-align: right;
   background: none;
   border: 0;
