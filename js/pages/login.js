@@ -18,8 +18,7 @@ import {
 } from "../ui.js";
 
 initNav();
-initDoor();
-hydrateDoor();
+initDoor(document, hydrateDoor());
 
 const FIELDS = ["email", "password"];
 const BAD_CREDENTIALS = "That key doesn't fit. Check your email or password.";
