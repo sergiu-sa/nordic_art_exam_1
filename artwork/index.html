@@ -214,16 +214,41 @@
         ></a>
       </nav>
       <div class="menu-preview" aria-hidden="true">
-        <img class="mp" data-prev="home" data-src="../assets/nav/home.webp" alt="" />
         <img
           class="mp"
+          src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+          data-prev="home"
+          data-src="../assets/nav/home.webp"
+          alt=""
+        />
+        <img
+          class="mp"
+          src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
           data-prev="all_artworks"
           data-src="../assets/nav/all_artworks.webp"
           alt=""
         />
-        <img class="mp" data-prev="login" data-src="../assets/nav/login.webp" alt="" />
-        <img class="mp" data-prev="profile" data-src="../assets/nav/profile.webp" alt="" />
-        <img class="mp" data-prev="create" data-src="../assets/nav/create.webp" alt="" />
+        <img
+          class="mp"
+          src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+          data-prev="login"
+          data-src="../assets/nav/login.webp"
+          alt=""
+        />
+        <img
+          class="mp"
+          src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+          data-prev="profile"
+          data-src="../assets/nav/profile.webp"
+          alt=""
+        />
+        <img
+          class="mp"
+          src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+          data-prev="create"
+          data-src="../assets/nav/create.webp"
+          alt=""
+        />
       </div>
       <div class="curtain-mark" aria-hidden="true">nordic <em>art archive</em></div>
     </div>
@@ -241,7 +266,7 @@
       </nav>
 
       <!-- ============ page states — loading / not found / error ============ -->
-      <section class="wallstate">
+      <div class="wallstate">
         <!-- the empty frame is decorative; the copy below carries the state -->
         <div class="statewall" aria-hidden="true">
           <figure class="frame empty">
@@ -254,10 +279,10 @@
           <!-- artwork.js renders the not-found / error copy here -->
           <div id="detail-state"></div>
         </div>
-      </section>
+      </div>
 
       <!-- ============ white entry — the wall label ============ -->
-      <section class="entry work">
+      <div class="entry work">
         <p class="label" id="entry-label"></p>
         <div class="htitle">
           <p class="art-title" id="art-title" aria-hidden="true"></p>
@@ -265,26 +290,31 @@
         </div>
         <p class="intro" id="intro"></p>
         <div class="tagrow" id="tagrow"></div>
-      </section>
+      </div>
 
       <!-- ============ the wall — one ink band behind the work ============ -->
-      <section class="wall work" id="wall">
+      <div class="wall work" id="wall">
         <figure class="frame r" id="art-frame">
-          <img id="art-image" alt="" />
+          <img
+            id="art-image"
+            src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+            alt=""
+          />
           <!-- shown only when the image URL is dead/non-http (body.is-noimage); not aria-hidden, so when it replaces the image it's announced -->
           <div class="noimg" id="art-noimg">image unavailable</div>
         </figure>
-        <a class="fullsize" id="fullsize" target="_blank" rel="noopener"
+        <!-- artwork.js sets href to the image URL once the work loads; the #main default keeps the markup valid and is inert (this .work section is hidden until then) -->
+        <a class="fullsize" id="fullsize" href="#main" target="_blank" rel="noopener"
           >view full size<span class="vh"> (opens in new tab)</span>
           <svg class="i" aria-hidden="true"><use href="#i-arrow-right" /></svg
         ></a>
-      </section>
+      </div>
 
       <!-- ============ in detail — fixed close-ups of the one API image ============ -->
-      <section class="indetail work" id="indetail">
+      <div class="indetail work" id="indetail">
         <div class="dkick">in detail</div>
         <div class="crops" id="crops"></div>
-      </section>
+      </div>
 
       <!-- ============ the story — white editorial spread ============ -->
       <section class="work">

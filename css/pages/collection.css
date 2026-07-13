@@ -311,6 +311,11 @@ body:not(.is-ready) .crumbs {
 }
 
 .chip {
+  /* 44px tap-target floor — the medium filters + the grid/index toggle */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 8px 18px;
   font-family: var(--sans);
   font-size: 11px;

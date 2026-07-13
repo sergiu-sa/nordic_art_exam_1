@@ -322,7 +322,7 @@
   font-family: var(--serif);
   font-style: italic;
   font-size: 15px;
-  color: var(--grey-500);
+  color: var(--grey-600); /* grey-500 was 4.47:1 on the white frame — grey-600 clears AA */
 }
 
 .pframe img {

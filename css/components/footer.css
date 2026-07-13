@@ -50,7 +50,9 @@ Composes .tag (tag.css) for any owner-marked column link. */
 }
 
 .fC .fcol a {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px; /* the column links stack closely */
   width: fit-content;
   color: var(--grey-300);
   text-decoration: none;
@@ -84,7 +86,9 @@ Composes .tag (tag.css) for any owner-marked column link. */
 
 /* log out is an action → a button; matched to the column link look so the account column reads as one set */
 .fC .fcol .logout {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px; /*  matched to the column links */
   width: fit-content;
   color: var(--grey-300);
   background: none;
