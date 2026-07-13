@@ -433,6 +433,10 @@ body.dark .mediums .row sup {
 
 .yellow .btn {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px; /* 44px tap-target floor */
   padding: 11px 28px;
   font-size: 12px;
   margin-bottom: 4px;
@@ -446,6 +450,7 @@ body.dark .mediums .row sup {
   align-items: center;
   gap: 8px;
   flex: none;
+  min-height: 44px; /* 44px tap-target floor (§3.7) */
   padding: 9px 26px;
   font-size: 11px;
   margin-bottom: 4px;
