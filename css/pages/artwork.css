@@ -266,7 +266,11 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
   text-transform: uppercase;
   color: var(--grey-300);
   text-decoration: none;
-  transition: color 0.3s;
+  /* the light label rides the ink band's reveal, so it never renders on white before the band arrives (WCAG contrast) */
+  opacity: 0;
+  transition:
+    opacity 0.9s ease,
+    color 0.3s;
 }
 
 .wall .fullsize:hover {
@@ -297,9 +301,17 @@ Its top is computed from the frame (placeBand in artwork.js) so it catches the w
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  /* sits on the band's tail */
+  /* sits on the band's tail — rides its reveal so it never renders on white (WCAG contrast) */
   color: var(--grey-300);
+  opacity: 0;
+  transition: opacity 0.9s ease;
   margin-bottom: 36px;
+}
+
+/* both light labels appear with the ink band — the wall entering view adds .on */
+.wall.on .fullsize,
+.wall.on ~ .indetail .dkick {
+  opacity: 1;
 }
 
 .indetail .crops {
@@ -934,6 +946,13 @@ The constellation on a section that tints to ink while the visitor is inside it 
   /* the band + spotlight show immediately, no fade-in on scroll */
   .wall::before,
   .wall::after {
+    opacity: 1;
+    transition: none;
+  }
+
+  /* the band is always on here, so its light labels are always visible too */
+  .wall .fullsize,
+  .indetail .dkick {
     opacity: 1;
     transition: none;
   }
