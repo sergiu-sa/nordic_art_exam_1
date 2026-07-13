@@ -16,8 +16,7 @@ import {
 } from "../ui.js";
 
 initNav();
-initDoor();
-hydrateDoor();
+initDoor(document, hydrateDoor());
 
 const FIELDS = ["name", "email", "password"];
 const SUCCESS_MESSAGE = "Welcome to the archive.";

@@ -116,22 +116,32 @@
     transform 0.9s cubic-bezier(0.34, 1.45, 0.45, 1) 0.4s;
 }
 
-/* entrance start states — only armed when JS is present and motion is allowed;
-   final (visible) state is the CSS default so the door shows without JS or under reduced motion */
+/* the works stay hidden until door-works.js hydrates,
+so the static fallback never flashes before the archive images swap in;
+js/account.js reveals them via .works-in once hydration settles */
+.js .door .piece {
+  opacity: 0;
+}
+
+.js .door.works-in .piece {
+  opacity: 1;
+}
+
+/* entrance start states,
+only armed when JS is present and motion is allowed;
+final (visible) state is the CSS default so the door shows without JS or under reduced motion */
 @media (prefers-reduced-motion: no-preference) {
   .js .door .piece {
-    opacity: 0;
     transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.72);
+  }
+
+  .js .door.works-in .piece {
+    transform: none;
   }
 
   .js .door .doorcard {
     opacity: 0;
     transform: translateY(-30px);
-  }
-
-  .door.in .piece {
-    opacity: 1;
-    transform: none;
   }
 
   .door.in .doorcard {
@@ -330,8 +340,7 @@
   }
 }
 
-/* entrance start state is never armed under reduced motion (gated above in no-preference);
-   suppress transitions on the base rules and kill the floaty drift */
+/* the scatter + card entrance are only armed under no-preference, but the works are held hidden in both modes */
 @media (prefers-reduced-motion: reduce) {
   .piece,
   .doorcard {
