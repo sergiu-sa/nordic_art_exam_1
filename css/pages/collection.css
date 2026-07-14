@@ -5,13 +5,19 @@
 /* ============ state layer ============
    body.is-loading (default) → is-ready | is-empty | is-error, set by collection.js.
    The walk only exists once real works render; every other state shows just the stable page head plus a skeleton/empty/error block, never a stray dark room. */
-body:not(.is-ready) .intro,
 body:not(.is-ready) .toolbar,
 body:not(.is-ready) .threshold,
 body:not(.is-ready) .inkstretch,
 body:not(.is-ready) .byhand,
 body:not(.is-ready) #indexview,
 body:not(.is-ready) .gridfoot {
+  display: none;
+}
+
+/* the stage holds its ground while the walk loads;
+collapsing it here made the collage's arrival shove the page head and grid down a full stage. */
+body.is-empty .intro,
+body.is-error .intro {
   display: none;
 }
 
@@ -120,6 +126,9 @@ an author display rule of equal specificity would otherwise win over the UA [hid
   aspect-ratio: 3 / 4;
   object-fit: cover;
   will-change: transform;
+  /* each slot waits as a plate until its work's pixels arrive;
+  the boxes are  inline-sized in the markup, so the composition stands from first paint */
+  background: var(--grey-300);
 }
 
 /* the two mid-composition anchors are drawn landscape; corners + bleeds stay portrait */
