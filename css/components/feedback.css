@@ -37,9 +37,12 @@
   animation: walk 1.1s ease-in-out infinite;
 }
 
+/* the runner walks on transform, not left;
+a left animation re-lays-out every frame off the compositor and turns up in CLS audits as a shift suspect.
+433.34% of the runner's own 30% width = the old -30% → 100% track walk. */
 @keyframes walk {
   to {
-    left: 100%;
+    transform: translateX(433.34%);
   }
 }
 
